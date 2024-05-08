@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "ctepy"
+version = "0.1.0"
+description = "A Python API client for US EPA's Computational Toxicology and Exposure APIs."
+authors = ["kaphillips <phillips.katherine@epa.gov>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+tqdm = "^4.66.1"
+pandas = "^2.1.4"
+numpy = "^1.26.3"
+tomli = "^2.0.1"
+requests = "^2.31.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
