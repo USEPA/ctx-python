@@ -14,15 +14,26 @@ m_xylene = ' DTXSID6026298'
 
 
 c = cte.Chemical()
-ts = c.search(by='equals',word='toluene')
-# print(ts)
 
-td = c.details(by='dtxsid',word=toluene)
-# print(td)
+print("chemical search")
+cs = c.search(by='equals',word='toluene')
+print(cs)
+print("\n")
 
+print("chemical details")
+cd = c.details(by='dtxsid',word=toluene)
+print(cd)
+print("\n")
+
+print("batch details")
 bd = c.details(by='batch',word=[toluene,p_xylene,o_xylene,m_xylene])
+print(bd)
+print("\n")
+
+print('batch search')
 bs = c.search(by='batch',word=['toluene','p-xylene','o-xylene','108-38-3'])
 print(bs)
+print("\n")
 
 
 # path = Path.home().joinpath(".config.toml")

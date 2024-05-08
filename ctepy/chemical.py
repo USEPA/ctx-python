@@ -25,12 +25,6 @@ class Chemical(CTEQuery):
         super().__init__(stage)
 
 
-    ## TODO:
-    ## 1. Get a static method that handles the get/post commands
-    ## 2. see if it's possible to put that static method in the base class,
-    ## instead of having to code it up for each individual sub-class
-
-
     def search(self,by: str,word: Union[str,Iterable[str]]):
         
         options = {"starts-with":"start-with",
@@ -53,32 +47,14 @@ class Chemical(CTEQuery):
             word = "\n".join([quote(w,safe="") for w in word])
             
             self.suffix = f"chemical/search/{options[by]}/"
-            self.headers = {**self.headers,
-                            **{"content-type":"application/json"}}
-
-            self.response = requests.post(f"{self.host}{self.suffix}",
-                                          headers=self.headers,
-                                          data=word)
             
+            info = super(Chemical,self).post(word=word)
             
         else:
             word = quote(word,safe="")
-            self.suffix = f"chemical/search/{by}/{word}"
+            self.suffix = f"chemical/search/{options[by]}/{word}"
         
-            try:
-                self.response = requests.get(f"{self.host}{self.suffix}",
-                                            headers=self.headers)
-            except Exception as e:
-                ## TODO: make this a more informative error message
-                raise SystemError(e)
-        
-        
-            
-        try:
-            info = json.loads(self.response.content.decode("utf-8"))
-        except json.JSONDecodeError as e:
-            ## TODO: make this a more informative error message
-            raise SystemError(e)
+            info = super(Chemical,self).get()
 
         return info
 
@@ -101,12 +77,7 @@ class Chemical(CTEQuery):
             word = '["'+'","'.join(word)+'"]'
 
             self.suffix = f"chemical/detail/search/{options[by]}/"
-            self.headers = {**self.headers,
-                            **{"content-type":"application/json"}}
-
-            self.response = requests.post(f"{self.host}{self.suffix}",
-                                          headers=self.headers,
-                                          data=word)
+            info = super(Chemical,self).post(word=word)
 
         else:
             if not isinstance(word,str):
@@ -116,18 +87,7 @@ class Chemical(CTEQuery):
             word = quote(word,safe="")
             self.suffix = f"chemical/detail/search/{options[by]}/{word}"
             
-            try:
-                self.response = requests.get(f"{self.host}{self.suffix}",
-                                            headers=self.headers)
-            except Exception as e:
-                ## TODO: make this a more informative error message
-                raise SystemError(e)
-
-        try:
-            info = json.loads(self.response.content.decode("utf-8"))
-        except json.JSONDecodeError as e:
-            ## TODO: make this a more informative error message
-            raise SystemError(e)
+            info = super(Chemical,self).get()
 
         return info
     
@@ -144,7 +104,7 @@ class Chemical(CTEQuery):
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
         
         word = quote(word,safe="")
-        self.suffix = f"chemical/msready/search/by-formula/{formula}"
+        self.suffix = f"chemical/msready/search/by-formula/{word}"
         
         if by == "mass":
             if (start == None) or (end == None):
@@ -162,97 +122,9 @@ class Chemical(CTEQuery):
         ## with the floats?
         word = quote(word,safe="")
         
-        try:
-            self.response = requests.get(f"{self.host}{self.suffix}",
-                                        headers=self.headers)
-        except Exception as e:
-            ## TODO: make this a more informative error message
-            raise SystemError(e)
-            
-        try:
-            info = json.loads(self.response.content.decode("utf-8"))
-        except json.JSONDecodeError as e:
-            ## TODO: make this a more informative error message
-            raise SystemError(e)
+        info = super(Chemical,self).get()
 
         return info
 
 
-
-# def chemical_batch(by,words,how='search',wait=None):
-#     """
-#     Perform the equivalent of a batch search of the CCD using the API call.
-    
-#     Parameters
-#     ----------
-#     by: string, what type of search will be called; options are `starts-with`, 
-#     `equals`, `contains`, or `dtxsid`
-#     words: list-like, collection of search terms to look for
-#     how: string, option of what will be returned in the search; for simple
-#         chemical identifiers choose `search`, but for more details like structure,
-#         and ToxPrint fingerprints, choose `details` (note: `details` will only
-#         take `dtxsid` or `dtxcid` as a `by` option)
-#     wait: integer, how many seconds to wait between API calls; default = 1
-#     """
-#     dtx = DTXQuery()
-#     words = np.unique([word for word in words if pd.notnull(word)])
-#     if isinstance(wait,type(None)):
-#         wait = 1
-    
-#     if how == 'search':
-#         df = []
-#         for word in tqdm(words,ascii=True,desc=f"Batch {by} Search"):
-#             try:
-#                 j = dtx.search(by=by,word=word)
-#             except http.client.InvalidURL:
-#                 j = [{"searchName":"No Match",
-#                           "searchValue": word,
-#                           "rank":pd.NA,
-#                           "casrn":pd.NA,
-#                           "preferredName":pd.NA,
-#                           "hasStructureImage":pd.NA,
-#                           "smiles":pd.NA,
-#                           "isMarkush":pd.NA,
-#                           "dtxsid":pd.NA,
-#                           "dtxcid":pd.NA}]
-#             # df.append(pd.DataFrame.from_records(j))
-#             if isinstance(j,dict):
-#                 if j['status'] == 400:
-#                     j = [{"searchName":"No Match",
-#                           "searchValue": word,
-#                           "rank":pd.NA,
-#                           "casrn":pd.NA,
-#                           "preferredName":pd.NA,
-#                           "hasStructureImage":pd.NA,
-#                           "smiles":pd.NA,
-#                           "isMarkush":pd.NA,
-#                           "dtxsid":pd.NA,
-#                           "dtxcid":pd.NA}]
-#                 df += j
-#             elif isinstance(j,list):
-#                 df += j
-#             else:
-#                 raise TypeError("CCD API batch search returned type ",
-#                                 f"({type(j).__name__}) for {j}")
-#             time.sleep(wait)
-#         df = pd.DataFrame(df).sort_values(['dtxsid','dtxcid','casrn',
-#                                            'preferredName','searchValue','rank'],
-#                                           ascending=[False,False,False,
-#                                                      False,False,True])
-#         df.drop_duplicates(subset=['dtxsid','dtxcid','casrn',
-#                                    'preferredName','searchValue'],
-#                            keep='last',inplace=True)
-#     elif how == 'details':
-#         ## TODO: raise error if by != dtxsid or dtxcid
-#         if (by != 'dtxsid') or (by != "dtxcid"):
-#             raise ValueError(f"{by} must be either `dtxsid` or `dtxcid` for"
-#                              "detail search.")
-#         df = []
-#         for word in tqdm(words,ascii=True,desc="Batch Detail Search"):
-#             j = dtx.get_details(by=by,word=word)
-#             df.append(j)
-#             time.sleep(wait)
-#         df = pd.DataFrame(df)
-        
-#     return df.copy()
 
