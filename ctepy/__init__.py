@@ -3,10 +3,10 @@ import tomli
 from sys import version_info
 from pathlib import Path
 
-from .chemical import ChemicalQuery
+from .chemical import Chemical
 from . import hazard
 from . import bioactivity
-from .exposure import ExposureQuery
+from .exposure import Exposure
 from . import ecotox
 
 

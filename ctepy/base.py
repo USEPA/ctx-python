@@ -1,6 +1,7 @@
 import tomli
 from pathlib import Path
 import http.client
+import requests
 
 class CTEQuery:
     def __init__(self,stage=False):
@@ -15,6 +16,11 @@ class CTEQuery:
         else:
             config = config['ccd_api']
             
-        self.conn = http.client.HTTPSConnection(config['host'])
-        self.headers = {'Content-Type': config['content_type'],
-                        'x-api-key': config['x_api_key']}
+        self.host = config.pop('host')
+        self.headers = config
+        # if conn_type == "http":
+        #     self.conn = http.client.HTTPSConnection(config['host'])
+        #     self.headers = {'Content-Type': config['content_type'],
+        #                     'x-api-key': config['x_api_key']}
+        # elif conn_type == "requests":
+        # self.conn =requests.get(config.pop('host'),headers=config)

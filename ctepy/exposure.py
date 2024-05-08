@@ -4,7 +4,7 @@ import warnings
 from ctepy.base import CTEQuery
 
 
-class ExposureQuery(CTEQuery):
+class Exposure(CTEQuery):
     def __init__(self,stage=False):
         super().__init__(stage)
         
@@ -37,7 +37,7 @@ class ExposureQuery(CTEQuery):
         return info
 
 
-    def get_ontologies(self,ont):
+    def vocabulary(self,ont):
         match ont:
             case "fc":
                 suffix = "/exposure/functional-use/category"
