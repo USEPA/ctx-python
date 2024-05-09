@@ -7,7 +7,7 @@ import warnings
 from urllib.parse import quote
 from importlib import resources
 from typing import Union, Iterable, Optional
-from ctepy.base import CTEQuery
+from ctepy.base import Connection
 
 
 def toxprints():
@@ -19,10 +19,11 @@ def toxprints():
     return toxps
 
 
-class Chemical(CTEQuery):
+class Chemical(Connection):
     
     def __init__(self,stage=False):
         super().__init__(stage)
+        self.kind = "chemical"
 
 
     def search(self,by: str,word: Union[str,Iterable[str]]):
@@ -46,13 +47,13 @@ class Chemical(CTEQuery):
                 
             word = "\n".join([quote(w,safe="") for w in word])
             
-            self.suffix = f"chemical/search/{options[by]}/"
+            self.suffix = f"{self.kind}/search/{options[by]}/"
             
             info = super(Chemical,self).post(word=word)
             
         else:
             word = quote(word,safe="")
-            self.suffix = f"chemical/search/{options[by]}/{word}"
+            self.suffix = f"{self.kind}/search/{options[by]}/{word}"
         
             info = super(Chemical,self).get()
 
@@ -76,7 +77,7 @@ class Chemical(CTEQuery):
             word = [quote(w,safe="") for w in word]
             word = '["'+'","'.join(word)+'"]'
 
-            self.suffix = f"chemical/detail/search/{options[by]}/"
+            self.suffix = f"{self.kind}/detail/search/{options[by]}/"
             info = super(Chemical,self).post(word=word)
 
         else:
@@ -85,7 +86,7 @@ class Chemical(CTEQuery):
                                 f"but `word` is not string {word}.")
                     
             word = quote(word,safe="")
-            self.suffix = f"chemical/detail/search/{options[by]}/{word}"
+            self.suffix = f"{self.kind}/detail/search/{options[by]}/{word}"
             
             info = super(Chemical,self).get()
 
@@ -104,7 +105,7 @@ class Chemical(CTEQuery):
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
         
         word = quote(word,safe="")
-        self.suffix = f"chemical/msready/search/by-formula/{word}"
+        self.suffix = f"{self.kind}/msready/search/by-formula/{word}"
         
         if by == "mass":
             if (start == None) or (end == None):
@@ -125,6 +126,4 @@ class Chemical(CTEQuery):
         info = super(Chemical,self).get()
 
         return info
-
-
 

@@ -1,60 +1,36 @@
 import json
 from urllib.parse import quote
 import warnings
-from ctepy.base import CTEQuery
+from ctepy.base import Connection
 
 
-class Exposure(CTEQuery):
+class Exposure(Connection):
     def __init__(self,stage=False):
         super().__init__(stage)
+        self.kind = "exposure"
         
     def search(self,by,word):
         
         word = quote(word,safe="")
-        print(by)
-        if by == "fc":
-            suffix = f"/exposure/functional-use/search/by-dtxsid/{word}"
-        elif by == "qsur":
-            suffix = f"/exposure/functional-use/probability/search/by-dtxsid/{word}"
-        elif by == "puc":
-            suffix = f"/exposure/product-data/search/by-dtxsid/{word}"
-        elif by == "lpk":
-            suffix = f"/exposure/list-presence/search/by-dtxsid/{word}"
-        else:
-            warnings.warn(f"{by} is not a valid value to search by.")
+        
+        options = {"fc":"functional-use/search/by-dtxsid",
+                   "qsur":"functional-use/probability/search/by-dtxsid",
+                   "puc":"product-data/search/by-dtxsid",
+                   "lpk":"list-presence/search/by-dtxsid"}
 
-        self.conn.request( "GET", suffix, headers=self.headers)
-        res = self.conn.getresponse()
-        print(res)
-        data = res.read()
-
-        try:
-            info = json.loads(data.decode("utf-8"))
-        except json.JSONDecodeError:
-            warnings.warn(f"{self.conn.host+suffix} not a valid URL.")
-            info = None
+        self.suffix = f"{self.kind}/{options[by]}/{word}"
+        info = super(Exposure,self).get()
 
         return info
 
 
-    def vocabulary(self,ont):
-        match ont:
-            case "fc":
-                suffix = "/exposure/functional-use/category"
-            case "lpk":
-                suffix = "/exposure/list-presence/tags"
-            case "puc":
-                suffix = "/exposure/product-data/puc"
-            case _:
-                warnings.warn(f"{ont} is not a valid ontology with categories.")
-            
-        self.conn.request( "GET", suffix, headers=self.headers)
-        res = self.conn.getresponse()
-        data = res.read()
+    def vocabulary(self,by):
 
-        try:
-            info = json.loads(data.decode("utf-8"))
-        except json.JSONDecodeError:
-            warnings.warn(f"{self.conn.host+suffix} not a valid URL.")
+        options = {"fc":"functional-use/category",
+                   "lpk":"list-presence/tags",
+                   "puc":"product-data/puc"}
+
+        self.suffix = f"{self.kind}/{options[by]}"
+        info = super(Exposure,self).get()
 
         return info

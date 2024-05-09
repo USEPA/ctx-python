@@ -17,3 +17,6 @@ requests = "^2.31.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+ccte_init = "ctepy.command_line:main"

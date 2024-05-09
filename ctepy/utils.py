@@ -1,1 +1,2 @@
-## TODO Helper functions to either create or add new entry to toml config files
+
+def 
