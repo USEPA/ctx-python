@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "ctepy"
+name = "ccte_api"
 version = "0.1.0"
 description = "A Python API client for US EPA's Computational Toxicology and Exposure APIs."
 authors = ["kaphillips <phillips.katherine@epa.gov>"]
