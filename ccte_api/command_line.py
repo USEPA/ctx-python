@@ -1,7 +1,7 @@
 import toml
 import argparse
 from pathlib import Path
-from ctepy.exceptions import TableExistsError
+from ccte_api.exceptions import TableExistsError
 
 
 def init(x_api_key:str, source:str="public"):

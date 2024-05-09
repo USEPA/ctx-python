@@ -1,5 +1,3 @@
-import http.client
-import tomli
 from sys import version_info
 from pathlib import Path
 
@@ -16,5 +14,3 @@ if version_info.major < 3:
 
 if version_info.minor < 10:
     raise RuntimeError("`dsstox` needs Python 3.10 or higher.")
-
-

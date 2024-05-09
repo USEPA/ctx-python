@@ -1,7 +1,7 @@
 import json
 from urllib.parse import quote
 import warnings
-from ctepy.base import Connection
+from ccte_api.base import Connection
 
 
 class Exposure(Connection):

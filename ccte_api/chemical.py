@@ -7,7 +7,7 @@ import warnings
 from urllib.parse import quote
 from importlib import resources
 from typing import Union, Iterable, Optional
-from ctepy.base import Connection
+from ccte_api.base import Connection
 
 
 def toxprints():
