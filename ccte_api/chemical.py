@@ -42,7 +42,7 @@ def toxprints():
 
 class Chemical(Connection):
     """
-    A Connection to CCTE's APIs to for chemicals.
+    An API Connection to CCTE's chemical data.
 
     Connection allows for 1) search for chemical(s) by names or other chemical
     identifiers, 2) search for chemical(s) via Mass Spectrometry ready 
@@ -65,12 +65,15 @@ class Chemical(Connection):
 
     Examples
     --------
-    Make a Connection:
-    >>> chem = cte.Chemical()
+    Make a Connection with stored API Key in ~/.config/ccte_api/config.toml:
+    >>> expo = cte.Chemical()
+    
+    Make a Connection by providing an API Key
+    >>> expo = cte.Chemical(x_api_key=648a3d70-396d-768d-b8a1a66607d9)
     
     """
     def __init__(self,x_api_key: Optional[str]=None):
-        super().__init__(x_api_key)
+        super().__init__(x_api_key=x_api_key)
         self.kind = "chemical"
 
 
@@ -385,10 +388,16 @@ class Chemical(Connection):
             The type of search method to use. Options are "dtxcid", "mass-range",
             or "formula".
             
-        word : string or iterable
+        word : Optional[string]
             If string, the single chemical identifer (or part of the identifier)
-            to search for. If iterable, a list or tuple of identifiers to search
-            for.
+            to search for. If no string is supplied, searching by mass-range is
+            assumed
+            
+        start : Optional[float]
+            lower bound molecular mass for search
+            
+        end : Optional[float]
+            upper bound molecular mass for search
             
         Return
         ------
