@@ -69,7 +69,7 @@ class Chemical(Connection):
     >>> expo = cte.Chemical()
     
     Make a Connection by providing an API Key
-    >>> expo = cte.Chemical(x_api_key=648a3d70-396d-768d-b8a1a66607d9)
+    >>> expo = cte.Chemical(x_api_key='648a3d70')
     
     """
     def __init__(self,x_api_key: Optional[str]=None):
