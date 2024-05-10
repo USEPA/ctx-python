@@ -19,6 +19,9 @@ chem = cte.Chemical(x_api_key='648a3d70')
 ```
 
 2. `ccte_api` comes with a command-line tool that will create a `config.toml` file that will store the key. If no key is supplied at instantiation, `ccte_api` will automatically attempt to load this file and use a key stored there.
+```{bash}
+[user@host~]$ ccte_init --x-api-key 648a3d70
+```
 
 ## Usage
 The backbone of `ccte_api` is its base `Connection` class. This class takes the appropriate authentication key and other important information for GET and POST commands and stores them for each call to the API. There are 5 different domains that have a specific `Conncetion` sub-class:
