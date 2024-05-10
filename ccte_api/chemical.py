@@ -408,6 +408,9 @@ class Chemical(Connection):
         Examples
         --------
         Search for chemical(s) by DTXCID:
+        
+        >>> chem.msready(by='dtxcid',word='DTXCID30182')
+        
         ['DTXSID0027480',
          'DTXSID00584370',
          'DTXSID10675703',
@@ -428,7 +431,7 @@ class Chemical(Connection):
         
         Search for chemical(s) by mass range:
         
-        >>> mass_search = chem.msready(by='mass', start=200.9, end=200.93)
+        >>> chem.msready(by='mass', start=200.9, end=200.93)
         
         ['DTXSID101263341',
          'DTXSID10355992',
