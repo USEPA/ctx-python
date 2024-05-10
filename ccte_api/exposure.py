@@ -1,7 +1,8 @@
 import json
-from urllib.parse import quote
 import warnings
-from ccte_api.base import Connection
+from urllib.parse import quote
+
+from .base import Connection
 
 
 class Exposure(Connection):

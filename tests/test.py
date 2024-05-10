@@ -4,7 +4,7 @@
 # from pathlib import Path
 # from requests.exceptions import HTTPError
 
-import ctepy as cte
+import ccte_api as cte
 
 ## Test chemical search
 toluene = 'DTXSID7021360'
