@@ -1,5 +1,3 @@
-import json
-import warnings
 from typing import Optional
 from urllib.parse import quote
 
@@ -146,7 +144,7 @@ class Exposure(Connection):
                    "qsur":"functional-use/probability/search/by-dtxsid",
                    "puc":"product-data/search/by-dtxsid",
                    "lpk":"list-presence/search/by-dtxsid"}
-        if not by in options.keys():
+        if by not in options.keys():
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
         
         self.suffix = f"{self.kind}/{options[by]}/{word}"
@@ -229,7 +227,7 @@ class Exposure(Connection):
                    "lpk":"list-presence/tags",
                    "puc":"product-data/puc"}
         
-        if not by in options.keys():
+        if by not in options.keys():
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
         
         self.suffix = f"{self.kind}/{options[by]}"

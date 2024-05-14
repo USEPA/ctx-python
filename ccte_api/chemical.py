@@ -1,9 +1,3 @@
-import json
-import requests
-import numpy as np
-import pandas as pd
-import time
-import warnings
 from urllib.parse import quote
 from importlib import resources
 from typing import Union, Iterable, Optional
@@ -214,7 +208,7 @@ class Chemical(Connection):
                    "contains":"contain",
                    "batch":'equal'}
         
-        if not by in options.keys():
+        if by not in options.keys():
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
         
         if by == 'batch':
@@ -344,7 +338,7 @@ class Chemical(Connection):
                    "dtxcid":"by-dtxcid",
                    "batch":"by-dtxsid"}
         
-        if not by in options.keys():
+        if by not in options.keys():
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
         
         if by == "batch":
@@ -441,10 +435,10 @@ class Chemical(Connection):
          ...]
         """
         
-        if (word == None) and (by != "mass"):
+        if (word is None) and (by != "mass"):
             raise ValueError("No search term provided to `word` argument.")
         
-        if ((start == None) or (end == None)) and (by == "mass"):
+        if ((start is None) or (end is None)) and (by == "mass"):
             raise ValueError("Searching by mass range, but no mass values "
                              "provided start and end of range.")
             
@@ -452,12 +446,12 @@ class Chemical(Connection):
                    "mass":"by-mass",
                    "formula":"by-formula",}
         
-        if not by in options.keys():
+        if by not in options.keys():
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
         
         
         if by == "mass":
-            if (start == None) or (end == None):
+            if (start is None) or (end is None):
                 raise ValueError("Argument `by` is 'mass', but no `start` or "
                                  "`end` mass values are provided.")
 

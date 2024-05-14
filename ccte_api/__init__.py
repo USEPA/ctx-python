@@ -1,13 +1,10 @@
 from sys import version_info
-from pathlib import Path
 
 from .chemical import Chemical
-from . import hazard
-from . import bioactivity
 from .exposure import Exposure
-from . import ecotox
 
-
+__all__ = ['Chemical',
+           'Exposure']
 
 if version_info.major < 3:
     raise RuntimeError("`dsstox` needs Python 3.10 or higher.")

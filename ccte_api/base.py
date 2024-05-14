@@ -24,7 +24,7 @@ class Connection:
             with open(path,'r') as fp:
                 config = toml.load(fp)
 
-            if not 'public_ccte_api' in config.keys():
+            if 'public_ccte_api' not in config.keys():
                 TableNotFoundError("`public_ccte_api` table not found in "
                                    "config.toml.")
                 
