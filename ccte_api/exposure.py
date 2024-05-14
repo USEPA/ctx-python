@@ -8,7 +8,7 @@ class Exposure(Connection):
     """
     An API Connection to CCTE's exposure data.
 
-    Connection allows users to search for a single chemicals': reported 
+    Connection allows users to search for a single chemicals': reported
     functional use, predicted functional use, products it has been reported to
     be in, and presence on various lists organized by keywords. This search is
     performed by submitting a single chemical DTXSID. Connection also allows
@@ -20,7 +20,7 @@ class Exposure(Connection):
     x_api_key : Optional[str]
         A personal key for using CCTE's APIs, if left blank, it assumes a key is
         already stored in ~/.config/ccte_api/config.toml
-        
+
     Returns
     -------
     CCTE API Connection
@@ -34,22 +34,23 @@ class Exposure(Connection):
     --------
     Make a Connection with stored API Key in ~/.config/ccte_api/config.toml:
     >>> expo = cte.Exposure()
-    
+
     Make a Connection by providing an API Key
     >>> expo = cte.Exposure(x_api_key='648a3d70')
-    
+
     """
-    def __init__(self,x_api_key: Optional[str]=None):
+
+    def __init__(self, x_api_key: Optional[str] = None):
         super().__init__(x_api_key=x_api_key)
         self.kind = "exposure"
-        
-    def search(self,by,word):
+
+    def search(self, by, word):
         """
         Search for a type of exposure information using a DTXSID.
 
-        For a single chemical, search for 1) reported functional uses, 
+        For a single chemical, search for 1) reported functional uses,
         2) predicted functional uses, 3) product that report this chemical as an
-        ingredient, or 4) annotated lists of chemicals that contain this 
+        ingredient, or 4) annotated lists of chemicals that contain this
         chemical.
 
         Parameters
@@ -59,12 +60,12 @@ class Exposure(Connection):
             "puc", or "lpk". "fc" is reported functional use, "qsur" is
             predicted functional use, "puc" is product information, and "lpk" is
             chemical list presence information.
-            
+
         word : string
             If string, the single chemical identifer (or part of the identifier)
             to search for. If iterable, a list or tuple of identifiers to search
             for.
-            
+
         Return
         ------
         list
@@ -85,11 +86,11 @@ class Exposure(Connection):
           'reportedfunction': 'fire retardant',
           'functioncategory': 'Flame retardant'},
          ...]
-         
+
         Search for predicted functional uses:
-        
+
         >>> expo.search(by='qsur',word='DTXSID7020182')
-        
+
         [{'probability': 0.3722,
           'harmonizedFunctionalUse': 'antimicrobial'},
          {'probability': 0.8941,
@@ -97,11 +98,11 @@ class Exposure(Connection):
          {'probability': 0.2031,
          'harmonizedFunctionalUse': 'catalyst'},
          ...]
-         
+
         Search for product information
-        
+
         >>> expo.search(by='puc',word='DTXSID7020182')
-        
+
         [{'id': 657348,
           'dtxsid': 'DTXSID7020182',
           'docid': 1314861,
@@ -122,9 +123,9 @@ class Exposure(Connection):
           'weightfractiontype': 'reported',
           'component': ''},
          ...]
-        
+
         >>> expo.search(by='lpk', word='DTXSID7020182')
-        
+
         [{'id': 127967,
           'dtxsid': 'DTXSID7020182',
           'docid': 1557970,
@@ -138,51 +139,52 @@ class Exposure(Connection):
           'keywordset': 'Canada; pharmaceutical'},
          ...]
         """
-        word = quote(word,safe="")
-        
-        options = {"fc":"functional-use/search/by-dtxsid",
-                   "qsur":"functional-use/probability/search/by-dtxsid",
-                   "puc":"product-data/search/by-dtxsid",
-                   "lpk":"list-presence/search/by-dtxsid"}
+        word = quote(word, safe="")
+
+        options = {
+            "fc": "functional-use/search/by-dtxsid",
+            "qsur": "functional-use/probability/search/by-dtxsid",
+            "puc": "product-data/search/by-dtxsid",
+            "lpk": "list-presence/search/by-dtxsid",
+        }
         if by not in options.keys():
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
-        
+
         self.suffix = f"{self.kind}/{options[by]}/{word}"
-        info = super(Exposure,self).get()
+        info = super(Exposure, self).get()
 
         return info
 
-
-    def vocabulary(self,by):
+    def vocabulary(self, by):
         """
                 Search for a type of exposure information using a DTXSID.
 
-        For a single chemical, search for 1) reported functional uses, 
+        For a single chemical, search for 1) reported functional uses,
         2) predicted functional uses, 3) product that report this chemical as an
-        ingredient, or 4) annotated lists of chemicals that contain this 
+        ingredient, or 4) annotated lists of chemicals that contain this
         chemical.
 
         Parameters
         ----------
         by : string
             The type of vocabulary to return. Options are "fc", "qsur",
-            "puc", or "lpk". "fc" is Function Category, "puc" is product use 
+            "puc", or "lpk". "fc" is Function Category, "puc" is product use
             category, and "lpk" is list presence keyword.
-            
+
         Return
         ------
         list
-            a list of dicts with each dict being an entry in the specified 
+            a list of dicts with each dict being an entry in the specified
             controlled vocabulary
 
 
         Examples
         --------
-        
+
         Get Function Category (FC) vocabulary
-        
+
         >>> expo.vocabulary(by='fc')
-        
+
         [{'id': 28,
           'title': 'Coalescing agent',
           'description': 'Chemical substance used in polymer emulsions ...'},
@@ -190,11 +192,11 @@ class Exposure(Connection):
           'title': 'Conductive agent',
           'description': 'Chemical substance used to conduct electrical ...'},
          ...]
-         
+
         Get Product Use Category (PUC) vocabulary
-        
+
         >>> expo.vocabulary(by='puc')
-        
+
         [{'id': 45,
           'kindName': 'Formulation',
           'genCat': 'Cleaning products and household care',
@@ -208,11 +210,11 @@ class Exposure(Connection):
           'prodtype': '',
           'definition': 'cleaning or care products specific to metals, ...'},
           ...]
-  
+
         Get List Presence Keyword (LPK) vocabulary
-        
+
         >>> expo.vobabulary(by='lpk')
-        
+
         [{'id': 52,
           'tagName': 'detected',
           'tagDefinition': 'chemicals measured or identified in ...',
@@ -223,14 +225,16 @@ class Exposure(Connection):
           'kindName': 'Media'},
          ...]
         """
-        options = {"fc":"functional-use/category",
-                   "lpk":"list-presence/tags",
-                   "puc":"product-data/puc"}
-        
+        options = {
+            "fc": "functional-use/category",
+            "lpk": "list-presence/tags",
+            "puc": "product-data/puc",
+        }
+
         if by not in options.keys():
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
-        
+
         self.suffix = f"{self.kind}/{options[by]}"
-        info = super(Exposure,self).get()
+        info = super(Exposure, self).get()
 
         return info
