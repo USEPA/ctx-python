@@ -46,7 +46,7 @@ def init(x_api_key: str, source: str = "public"):
                 if f"{source}_ccte_api" in data.keys():
                     raise TableExistsError(
                         f"Table for`{source}_ccte_api` already exists in "
-                        "config.toml, you can manually change the API key, "
+                        f"{path.as_posix()}, you can manually change the API key, "
                         "if needed."
                     )
                 else:
