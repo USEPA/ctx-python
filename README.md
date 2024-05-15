@@ -43,7 +43,7 @@ import ccte_api as cte
 chem = cte.Chemical()
 
 ## Search for some data
-chem.search(by='equals",word='toluene')
+chem.search(by='equals',word='toluene')
 chem.search(by='starts-with',word='atra')
 chem.search(by='contains',word='-00-')
 chem.search(by='batch',word=['50-00-0','BPA'])
