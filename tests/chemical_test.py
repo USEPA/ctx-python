@@ -42,7 +42,10 @@ class TestChemical(unittest.TestCase):
 
 
     def test_search_batch(self):
-        chemicals = ['toluene','p-xylene','o-xylene','108-38-3']
+        chemicals = {'toluene': 'DTXSID7021360',
+                     'p-xylene': 'DTXSID2021868',
+                     'o-xylene': 'DTXSID3021807',
+                     '108-38-3': 'DTXSID6026298'}
         test_search = self._conn.search(by = 'batch', word = chemicals)
         self.assertEqual(len(test_search),4)
         
@@ -51,37 +54,34 @@ class TestChemical(unittest.TestCase):
         # what this is, so that I can check it. I could then use 
         # `self.assertCountEqual([i['searchValue'] for i in test_search],chemicals)`
         
-        self.assertTrue(any('DTXSID7021360' in chem.values() for chem in test_search))
-        self.assertTrue(any('DTXSID2021868' in chem.values() for chem in test_search))
-        self.assertTrue(any('DTXSID3021807' in chem.values() for chem in test_search))
-        self.assertTrue(any('DTXSID6026298' in chem.values() for chem in test_search))
+        for chem in test_search:
+            sv = chem['searchValue'].lower().replace(" ","-")
+            self.assertEqual(chem['dtxsid'].strip(),chemicals[sv])
 
 
     def test_details_dtxsid_default(self):
         test_search = self._conn.details(by='dtxsid',word='DTXSID7021360')
         self.assertTrue(len(test_search),73)
-        self.assertEqual(test_search['inchikey'],'InChI=1S/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3\n')
+        self.assertEqual(test_search['inchiString'].strip(),'InChI=1S/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3')
 
-    @unittest.skip("Not yet implemented")
+
     def test_details_dtxcid_default(self):
-        test_search = self._conn.details(by='dtxsid',word='DTXCID501360')
+        test_search = self._conn.details(by='dtxcid',word='DTXCID501360')
         self.assertTrue(len(test_search),73)
-        self.assertEqual(test_search['inchikey'],'InChI=1S/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3')
-        return
+        self.assertEqual(test_search['inchiString'].strip(),'InChI=1S/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3')
 
-    @unittest.skip("Not yet implemented")
+
     def test_details_batch_default(self):
         chemicals = {'DTXSID7021360': "InChI=1S/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3",
                      'DTXSID2021868': "InChI=1S/C8H10/c1-7-3-5-8(2)6-4-7/h3-6H,1-2H3",
                      'DTXSID3021807': "InChI=1S/C8H10/c1-7-5-3-4-6-8(7)2/h3-6H,1-2H3",
                      'DTXSID6026298': "InChI=1S/C8H10/c1-7-4-3-5-8(2)6-7/h3-6H,1-2H3"}
-        test_search = self._conn.details(by='batch',word=chemicals)
+        test_search = self._conn.details(by='batch',word=chemicals.keys())
         self.assertTrue(len(test_search),4)
         
         for chem in test_search:
-        
-        self.assertEqual(,'InChI=1S/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3\n')
-        return
+            self.assertEqual(chem['inchiString'].strip(),chemicals[chem['dtxsid']])
+
 
     @unittest.skip("Not yet implemented")
     def test_details_dtxsid_all(self):
