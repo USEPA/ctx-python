@@ -88,10 +88,10 @@ class Chemical(Connection):
             The type of search method to use. Options are "equals", "contains",
             "starts-with", or "batch".
 
-        word : string or iterable
+        word : string or list-like
             If string, the single chemical identifer (or part of the identifier)
-            to search for. If iterable, a list or tuple of identifiers to search
-            for.
+            to search for. If list-list, a list or other iterable of identifiers to 
+            search for.
 
         Return
         ------
@@ -214,9 +214,9 @@ class Chemical(Connection):
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
 
         if by == "batch":
-            if not isinstance(word, list):
+            if (not isinstance(word, Iterable)) or (isinstance(word, str)):
                 raise TypeError(
-                    "Arugment `by` is 'batch', " "but `word` is not an Iterable."
+                    "Arugment `by` is 'batch', " "but `word` is not an list-type."
                 )
             ## API only handles 200 at a time.
             if len(word) > 200:
@@ -268,10 +268,10 @@ class Chemical(Connection):
             The type of search method to use. Options are "dtxsid", "dtxcid",
             or "batch".
 
-        word : string or iterable
+        word : string or list-like
             If string, the single chemical identifer (or part of the identifier)
-            to search for. If iterable, a list or tuple of identifiers to search
-            for.
+            to search for. If list-like, a list or other iterable of identifiers to 
+            search for.
 
         subset: string (optional)
             If None, then default values are returned from call. If string, then
@@ -365,9 +365,9 @@ class Chemical(Connection):
             raise KeyError(f"Value {subset} is invalid option for argument `subset`.")
 
         if by == "batch":
-            if not isinstance(word, list):
+            if (not isinstance(word, Iterable)) or (isinstance(word, str)):
                 raise TypeError(
-                    "Arugment `by` is 'batch', " "but `word` is not an Iterable."
+                    "Arugment `by` is 'batch', " "but `word` is not an list-type."
                 )
 
             word = [quote(w, safe="") for w in word]
