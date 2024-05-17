@@ -1,9 +1,3 @@
-# import json
-# import requests
-# import tomli
-# from pathlib import Path
-# from requests.exceptions import HTTPError
-
 import ccte_api as cte
 
 ## Test chemical search

@@ -250,7 +250,10 @@ class Chemical(Connection):
 
         return info
 
-    def details(self, by: str, word: Union[str, Iterable[str]]):
+    def details(
+        self, by: str, word: Union[str, Iterable[str]], subset: Optional[str] = "all"
+    ):
+        ## TODO: add exactly what each subset returns
         """
         Get detailed information about chemical(s) via CCTE's APIs.
 
@@ -269,6 +272,11 @@ class Chemical(Connection):
             If string, the single chemical identifer (or part of the identifier)
             to search for. If iterable, a list or tuple of identifiers to search
             for.
+
+        subset: string (optional)
+            If None, then default values are returned from call. If string, then
+            one of six valid subsets of data to call. Options are 'default',
+            'all','details','identifiers', 'structures', and 'nta-toolkit'.
 
         Return
         ------
@@ -336,10 +344,25 @@ class Chemical(Connection):
           ...}]
         """
 
-        options = {"dtxsid": "by-dtxsid", "dtxcid": "by-dtxcid", "batch": "by-dtxsid"}
+        by_options = {
+            "dtxsid": "by-dtxsid",
+            "dtxcid": "by-dtxcid",
+            "batch": "by-dtxsid",
+        }
+        subset_options = {
+            "default": None,
+            "all": "chemicaldetailall",
+            "details": "chemicaldetailstandard",
+            "identifiers": "chemicalidentifier",
+            "structures": "chemicalstructure",
+            "nta-toolkit": "ntatoolkit",
+        }
 
-        if by not in options.keys():
+        if by not in by_options.keys():
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
+
+        if subset not in subset_options.keys():
+            raise KeyError(f"Value {subset} is invalid option for argument `subset`.")
 
         if by == "batch":
             if not isinstance(word, list):
@@ -350,7 +373,7 @@ class Chemical(Connection):
             word = [quote(w, safe="") for w in word]
             word = '["' + '","'.join(word) + '"]'
 
-            self.suffix = f"{self.kind}/detail/search/{options[by]}/"
+            self.suffix = f"{self.kind}/detail/search/{by_options[by]}/"
             info = super(Chemical, self).post(word=word)
 
         else:
@@ -360,7 +383,14 @@ class Chemical(Connection):
                 )
 
             word = quote(word, safe="")
-            self.suffix = f"{self.kind}/detail/search/{options[by]}/{word}"
+
+            if subset is None:
+                self.suffix = f"{self.kind}/detail/search/{by_options[by]}/{word}"
+            else:
+                self.suffix = (
+                    f"{self.kind}/detail/search/{by_options[by]}/{word}"
+                    f"?projection={subset_options[subset]}"
+                )
 
             info = super(Chemical, self).get()
 
@@ -482,3 +512,11 @@ class Chemical(Connection):
         info = super(Chemical, self).get()
 
         return info
+
+
+def get_toxprints(ids, id_types):
+    """
+    place holder for passing a list of ids and returning a dataframe of just
+    toxprints
+    """
+    return

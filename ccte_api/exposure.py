@@ -238,3 +238,9 @@ class Exposure(Connection):
         info = super(Exposure, self).get()
 
         return info
+    
+def get_expoprints():
+    """
+    place holder for providing chemical ids and getting dataframe of ExpoPrints
+    """
+    return
