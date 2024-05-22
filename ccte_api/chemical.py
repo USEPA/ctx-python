@@ -276,7 +276,7 @@ class Chemical(Connection):
         subset: string (optional)
             If None, then default values are returned from call. If string, then
             one of six valid subsets of data to call. Options are 'default',
-            'all','details','identifiers', 'structures', and 'nta-toolkit'.
+            'all','details','identifiers', 'structures', and 'nta'.
 
         Return
         ------
@@ -355,7 +355,7 @@ class Chemical(Connection):
             "details": "chemicaldetailstandard",
             "identifiers": "chemicalidentifier",
             "structures": "chemicalstructure",
-            "nta-toolkit": "ntatoolkit",
+            "nta": "ntatoolkit",
         }
 
         if by not in by_options.keys():
@@ -415,7 +415,10 @@ class Chemical(Connection):
         ----------
         by : string
             The type of search method to use. Options are "dtxcid", "mass-range",
-            or "formula".
+            or "formula". "dtxcid" option returns all mixtures, compenents, and 
+            isotopes of the chemical structure. "mass-range" returns all chemicals that
+            exist within the specific monoisotopic mass range. "formula" returns all
+            chemicals having that molecular formula.
 
         word : Optional[string]
             If string, the single chemical identifer (or part of the identifier)
