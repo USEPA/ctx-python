@@ -1,3 +1,4 @@
+import sys
 import toml
 import argparse
 from pathlib import Path
@@ -59,6 +60,9 @@ def main():
     parser.add_argument(
         "-s", "--source", help="type of source for data from API", default="public"
     )
-    args = parser.parse_args()
-    init(x_api_key=args.x_api_key, source=args.source)
+    if len(sys.argv) == 1:
+        parser.print_help()
+    else:
+        args = parser.parse_args()
+        init(x_api_key=args.x_api_key, source=args.source)
     return
