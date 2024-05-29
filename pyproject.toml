@@ -21,6 +21,6 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-ccte_init = "ctepy.command_line:main"
+ccte_init = "ccte_api.command_line:main"
 
 [tool.ruff]
