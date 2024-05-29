@@ -2,9 +2,9 @@ class TOMLError(Exception):
     """A base class for TOML errors encounters in cctepy."""
 
 
-class TableExistsError(TOMLError):
+class TOMLTableExistsError(TOMLError):
     """Error for attempting to change/create existing table in config.toml."""
 
 
-class TableNotFoundError(TOMLError):
+class TOMLTableNotFoundError(TOMLError):
     """Error for attempting to change non-existant table in config.toml."""

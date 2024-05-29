@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import requests
 from typing import Optional
-from .exceptions import TableNotFoundError
+from .exceptions import TOMLTableNotFoundError
 
 
 class Connection:
@@ -23,7 +23,7 @@ class Connection:
                 config = toml.load(fp)
 
             if "public_ccte_api" not in config.keys():
-                TableNotFoundError(
+                TOMLTableNotFoundError(
                     "`public_ccte_api` table not found in " "config.toml."
                 )
 

@@ -1,7 +1,7 @@
 import toml
 import argparse
 from pathlib import Path
-from ccte_api.exceptions import TableExistsError
+from ccte_api.exceptions import TOMLTableExistsError
 
 
 def init(x_api_key: str, source: str = "public"):
@@ -29,12 +29,11 @@ def init(x_api_key: str, source: str = "public"):
     }
 
     path = Path.home() / ".config" / "ccte_api" / "config.toml"
-    
+
     if not path.is_file():
-        
         if not path.parent.is_dir():
             path.parent.mkdir(parents=True, exist_ok=False)
-            
+
         with path.open("w") as f:
             toml.dump(data, f)
 
@@ -42,7 +41,7 @@ def init(x_api_key: str, source: str = "public"):
         data = toml.load(path)
 
         if f"{source}_ccte_api" in data.keys():
-            raise TableExistsError(
+            raise TOMLTableExistsError(
                 f"Table for`{source}_ccte_api` already exists in "
                 f"{path.as_posix()}, you can manually change the API key, "
                 "if needed."
@@ -54,11 +53,12 @@ def init(x_api_key: str, source: str = "public"):
     return
 
 
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-x", "--x-api-key", help="string containing API key")
-    parser.add_argument("-s", "--source", help="source of ", default="public")
+    parser.add_argument(
+        "-s", "--source", help="type of source for data from API", default="public"
+    )
     args = parser.parse_args()
     init(x_api_key=args.x_api_key, source=args.source)
     return
