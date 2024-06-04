@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "ccte_api"
+name = "ctxpy"
 version = "0.1.0"
 description = "A Python API client for US EPA's Computational Toxicology and Exposure APIs."
 authors = ["kaphillips <phillips.katherine@epa.gov>"]
@@ -21,6 +21,6 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-ccte_init = "ccte_api.command_line:main"
+ccte_init = "ctxpy.command_line:main"
 
 [tool.ruff]

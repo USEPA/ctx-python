@@ -1,3 +1,4 @@
+import pandas as pd
 from typing import Optional
 from urllib.parse import quote
 
@@ -43,6 +44,14 @@ class Exposure(Connection):
     def __init__(self, x_api_key: Optional[str] = None):
         super().__init__(x_api_key=x_api_key)
         self.kind = "exposure"
+        
+    # def __repr__(self):
+        
+    def __str__(self):
+        if hasattr(self,'data'):
+            return self.data
+        else:
+            return f"Connection.{str.title(self.kind)}"
 
     def search(self, by, word):
         """
@@ -151,13 +160,13 @@ class Exposure(Connection):
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
 
         self.suffix = f"{self.kind}/{options[by]}/{word}"
-        info = super(Exposure, self).get()
+        self.data = super(Exposure, self).get()
 
-        return info
+        return self
 
     def vocabulary(self, by):
         """
-                Search for a type of exposure information using a DTXSID.
+        Search for a type of exposure information using a DTXSID.
 
         For a single chemical, search for 1) reported functional uses,
         2) predicted functional uses, 3) product that report this chemical as an
@@ -235,9 +244,16 @@ class Exposure(Connection):
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
 
         self.suffix = f"{self.kind}/{options[by]}"
-        info = super(Exposure, self).get()
+        self.data = super(Exposure, self).get()
 
-        return info
+        return self
+    
+
+    def to_df(self):
+        if not hasattr(self,'data'):
+            raise AttributeError("No data to convert to DataFrame")
+        return pd.DataFrame(self.data)
+    
     
 def get_expoprints():
     """

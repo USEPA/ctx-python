@@ -1,4 +1,4 @@
-# ccte_api
+# ctxpy 
 
 Python wrapper for U.S. EPA's Center for Computational Toxicology and Exposure (CTE) APIs.
 
