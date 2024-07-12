@@ -1,12 +1,12 @@
 import unittest
 import time
-import ccte_api as cte
+import ctxpy as ctx
 
 
 class TestChemical(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls._conn = cte.Chemical()
+        cls._conn = ctx.Chemical()
 
     def tearDown(self):
         time.sleep(3)

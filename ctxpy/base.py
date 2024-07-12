@@ -1,38 +1,61 @@
-import toml
 import json
 from pathlib import Path
+from typing import Optional, Union
+
 import requests
-from typing import Optional
-from .exceptions import TOMLTableNotFoundError
+
+from .utils import read_env
 
 
 class Connection:
-    def __init__(self, x_api_key: Optional[str] = None):
+    """
+    Connection that passes API key and other variables needed for GET and POST calls to
+    API server.
+    
+    Parameters
+    ----------
+    x_api_key : str or None, default None
+        A user's API key provided to them for accessing CCTE's APIs. Will use value
+        provided in .env file if no key is provided.
+    env_path : str or None, default None
+        The .env file location. Will default to a user's home directory if no value is 
+        provided.
+        
+    Attributes
+    ----------
+    headers : dict
+        A dictionary of information used to make an API call
+        
+    Methods
+    -------
+    get
+        request information from specified source using information in header
+    post
+        send data to resource and then retrieve information based on that data
+
+    """
+    def __init__(
+        self,
+        x_api_key: Optional[str] = None,
+        env_path: Optional[Union[str, Path]] = None,
+    ):
         if isinstance(x_api_key, str):
             self.host = "https://api-ccte.epa.gov/"
             self.headers = {"accept": "application/json", "x-api-key": x_api_key}
 
         else:
-            ## Standard path to ccte_api's config file
-            path = Path.home() / ".config" / "ccte_api" / "config.toml"
-
-            if not path.is_file():
-                raise FileNotFoundError(f"{path.as_posix()} does not exist.")
-
-            with open(path, "r") as fp:
-                config = toml.load(fp)
-
-            if "public_ccte_api" not in config.keys():
-                TOMLTableNotFoundError(
-                    "`public_ccte_api` table not found in " "config.toml."
-                )
-
-            config = config["public_ccte_api"]
-
+            config = read_env()
             self.host = config.pop("host")
             self.headers = config
 
     def get(self):
+        """
+        Request informaiton via API call
+        
+        Returns
+        -------
+        dict, JSON information that was requested in the API call
+        """
         try:
             self.response = requests.get(
                 f"{self.host}{self.suffix}", headers=self.headers
@@ -50,6 +73,14 @@ class Connection:
         return info
 
     def post(self, word: str):
+        """
+        Request information via API call, but also supply stipulations on subsets or
+        specific aspects of returned information
+        
+        Returns
+        -------
+        dict, JSON information that was requested in the API call
+        """
         try:
             self.headers = {**self.headers, **{"content-type": "application/json"}}
 

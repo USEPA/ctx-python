@@ -1,13 +1,13 @@
 import unittest
 import time
-import ccte_api as cte
+import ctxpy as ctx
 
 
 class TestChemical(unittest.TestCase):
     
     @classmethod
     def setUpClass(cls):
-        cls._conn = cte.Exposure()
+        cls._conn = ctx.Exposure()
         
     def tearDown(self):
         time.sleep(3)
@@ -18,8 +18,6 @@ class TestChemical(unittest.TestCase):
         self.assertIsNotNone(self._conn.headers['x-api-key'])
         self.assertEqual(self._conn.kind,'exposure')
 
-
-        
 
 
 if __name__ == "__main__":

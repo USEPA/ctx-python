@@ -3,7 +3,11 @@
 Python wrapper for U.S. EPA's Center for Computational Toxicology and Exposure (CTE) APIs.
 
 ## Installation
-Coming soon...
+`ctxpy` is available to install via `pip`.
+
+```
+pip install ctxpy
+```
 
 ## Initialization
 Before being able to access CCTE's API, a use must acquire an API key. See [https://api-ccte.epa.gov/docs/](https://api-ccte.epa.gov/docs/) for more information.
@@ -24,12 +28,12 @@ chem = cte.Chemical(x_api_key='648a3d70')
 ```
 
 ## Usage
-The backbone of `ctxpy` is its base `Connection` class. This class takes the appropriate authentication key and other important information for GET and POST commands and stores them for each call to the API. There are 5 different domains that have a specific `Conncetion` sub-class:
+The backbone of `ctxpy` is its base `Connection` class. This class takes the appropriate authentication key and other important information for GET and POST commands and stores them for each call to the API. There are 5 different domains that have a specific `Connection` sub-class:
 - Chemical
 - Exposure
-- Hazard
-- Bioactivity
-- Ecotox
+- Hazard (comming soon)
+- Bioactivity (comming soon)
+- Ecotox (comming soon)
 
 ### Chemicals
 The chemical domain provides capabilities to:

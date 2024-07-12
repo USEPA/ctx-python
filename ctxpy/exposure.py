@@ -253,10 +253,3 @@ class Exposure(Connection):
         if not hasattr(self,'data'):
             raise AttributeError("No data to convert to DataFrame")
         return pd.DataFrame(self.data)
-    
-    
-def get_expoprints():
-    """
-    place holder for providing chemical ids and getting dataframe of ExpoPrints
-    """
-    return
