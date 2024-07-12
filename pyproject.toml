@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "ctxpy"
+name = "ctx-py"
 version = "0.0.1-alpha.1"
 description = "A Python API client for US EPA's Computational Toxicology and Exposure APIs."
 authors = ["Katherine Phillips <phillips.katherine@epa.gov>"]
@@ -14,6 +14,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Topic :: Scientific/Engineering :: Chemistry"
 ]
+repository="https://github.com/USEPA/ctxpy"
+packages = [{ include = 'ctxpy' }, {include = 'ctxpy_tests'}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
