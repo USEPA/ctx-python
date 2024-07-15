@@ -1,34 +1,34 @@
-# ctxpy 
+# py-ctx
 
 Python wrapper for U.S. EPA's Center for Computational Toxicology and Exposure (CTE) APIs.
 
 ## Installation
-`ctxpy` is available to install via `pip`.
+`py-ctx` is available to install via `pip`.
 
 ```
-pip install ctxpy
+pip install py-ctx
 ```
 
 ## Initialization
 Before being able to access CCTE's API, a use must acquire an API key. See [https://api-ccte.epa.gov/docs/](https://api-ccte.epa.gov/docs/) for more information.
 
-Once an API key is obtained, `ctxpy` offers two options for passing the key for authentication:
+Once an API key is obtained, `py-ctx` offers two options for passing the key for authentication:
 
 1. Supply the key at the point of instantiatation for each domain. This will look something like:
 
 ```{python}
-import ctxpy as cte
+import ctx
 
 chem = cte.Chemical(x_api_key='648a3d70')
 ```
 
-2. `ctxpy` comes with a command-line tool that will create a `config.toml` file that will store the key. If no key is supplied at instantiation, `ctxpy` will automatically attempt to load this file and use a key stored there.
+2. `py-ctx` comes with a command-line tool that will create a `config.toml` file that will store the key. If no key is supplied at instantiation, `py-ctx` will automatically attempt to load this file and use a key stored there.
 ```{bash}
-[user@host~]$ ccte_init --x-api-key 648a3d70
+[user@host~]$ ctx_init --x-api-key 648a3d70
 ```
 
 ## Usage
-The backbone of `ctxpy` is its base `Connection` class. This class takes the appropriate authentication key and other important information for GET and POST commands and stores them for each call to the API. There are 5 different domains that have a specific `Connection` sub-class:
+The backbone of `py-ctx` is its base `Connection` class. This class takes the appropriate authentication key and other important information for GET and POST commands and stores them for each call to the API. There are 5 different domains that have a specific `Connection` sub-class:
 - Chemical
 - Exposure
 - Hazard (comming soon)
@@ -41,10 +41,10 @@ The chemical domain provides capabilities to:
 - retrieve details about a chemical from a DTXSID (single chemical or batch search) or DTXCID (single chemical only)
 - search for chemicals that match features common in Mass Spectrometry (i.e., a range of molecular mass, chemical formula, or by DTXCID)
 ```{python}
-import ctxpy as cte
+import ctx
 
 ## Start an instance of the Chemical class
-chem = cte.Chemical()
+chem = ctx.Chemical()
 
 ## Search for some data
 chem.search(by='equals',word='toluene')
@@ -76,10 +76,10 @@ The exposure domain provides capabilities to:
     - Product Use Categories (PUC)
     - List Presence Keywords (LPKs)
 ```{python}
-import ctxpy as cte
+import ctx
 
 ## Start an instance of the Exposure class
-expo = cte.Exposure()
+expo = ctx.Exposure()
 
 ## Search for some data
 expo.search(by="fc",word="DTXSID7020182")
