@@ -246,7 +246,7 @@ class Exposure(Connection):
         self.suffix = f"{self.kind}/{options[by]}"
         self.data = super(Exposure, self).get()
 
-        return self
+        return self.data
     
 
     def to_df(self):
