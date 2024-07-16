@@ -10,7 +10,7 @@ pip install ctx-python
 ```
 
 ## Initialization
-Before being able to access CCTE's API, a use must acquire an API key. See [https://api-ccte.epa.gov/docs/](https://api-ccte.epa.gov/docs/) for more information.
+**Before being able to access CCTE's API, a user must acquire an API key.** See [https://api-ccte.epa.gov/docs/](https://api-ccte.epa.gov/docs/) for more information.
 
 Once an API key is obtained, `ctx-python` offers two options for passing the key for authentication:
 
@@ -22,9 +22,15 @@ import ctxpy as ctx
 chem = ctx.Chemical(x_api_key='648a3d70')
 ```
 
-2. `ctx-python` comes with a command-line tool that will create a `config.toml` file that will store the key. If no key is supplied at instantiation, `ctx-python` will automatically attempt to load this file and use a key stored there.
+2. `ctx-python` comes with a command-line tool that will utilize the `.env` file that will store the key. If no key is supplied at instantiation, `ctx-python` will automatically attempt to load this file and use a key stored there.
 ```{bash}
 [user@host~]$ ctx_init --x-api-key 648a3d70
+```
+
+```{python}
+import ctxpy as ctx
+
+chem = ctx.Chemical()
 ```
 
 ## Usage
@@ -35,11 +41,12 @@ The backbone of `ctx-python` is its base `Connection` class. This class takes th
 - Bioactivity (comming soon)
 - Ecotox (comming soon)
 
-### Chemicals
-The chemical domain provides capabilities to:
+### Chemical
+The `Chemical` class provides capabilities to:
 - search for chemicals by their names, CAS-RNs, DTXSIDs, or other potential identifiers
 - retrieve details about a chemical from a DTXSID (single chemical or batch search) or DTXCID (single chemical only)
 - search for chemicals that match features common in Mass Spectrometry (i.e., a range of molecular mass, chemical formula, or by DTXCID)
+
 ```{python}
 import ctx
 
@@ -65,7 +72,7 @@ chem.msready(by='mass', start=200.9, end=200.93)
 ```
 
 ### Exposure
-The exposure domain provides capabilities to:
+The `Exposure` class provides capabilities to:
 - search for a chemical's:
     - reported functional use information
     - predicted functional uses
@@ -75,6 +82,7 @@ The exposure domain provides capabilities to:
     - Function Categories (FC)
     - Product Use Categories (PUC)
     - List Presence Keywords (LPKs)
+
 ```{python}
 import ctx
 
