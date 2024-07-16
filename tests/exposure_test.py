@@ -1,6 +1,6 @@
 import unittest
 import time
-import ctx
+import ctxpy as ctx
 
 
 class TestChemical(unittest.TestCase):

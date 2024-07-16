@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "py-ctx"
+name = "ctx-python"
 version = "0.0.1-alpha.1"
 description = "A Python API client for US EPA's Computational Toxicology and Exposure APIs."
 authors = ["Katherine Phillips <phillips.katherine@epa.gov>"]
 readme = "README.md"
 license = "GPL-3.0-or-later"
-packages = [{include = "ctx"}]
+packages = [{include = "ctxpy"}]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Intended Audience :: Science/Research",
@@ -15,7 +15,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Topic :: Scientific/Engineering :: Chemistry"
 ]
-repository="https://github.com/USEPA/ctxpy"
+repository="https://github.com/USEPA/ctx-python"
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -29,6 +29,6 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-ctx_init = "ctx.command_line:main"
+ctx_init = "ctxpy.command_line:main"
 
 [tool.ruff]

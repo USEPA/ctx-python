@@ -1,5 +1,5 @@
 """
-py-ctx
+ctx-python
 =====
 
 Provides a Python interface with EPA's Office of Research and Development, Center for
@@ -17,31 +17,31 @@ We recommend exploring the docstrings using
 TAB-completion and introspection capabilities.  See below for further
 instructions.
 
-The docstring examples assume that `ctx` has been imported::
+The docstring examples assume that `ctxpy` has been imported as ctx:
 
-  >>> import ctx
+  >>> import ctxpy as ctx
 
 Code snippets are indicated by three greater-than signs::
 
   >>> c = ctx.Chemical()
   >>> c.search(by='equals',word='toluene')
 
-Use the built-in ``help`` function to view a function's docstring::
+Use the built-in ``help`` function to view a function's docstring:
 
   >>> help(ctx.Chemical)
 
 Viewing documentation using IPython
 -----------------------------------
 
-Start IPython and import `py-ctx`: `import ctx`.  Then, directly paste or use the 
-``%cpaste`` magic to paste examples into the shell.  To see which functions are 
-available in `py-ctx`, type ``ctx.<TAB>`` (where ``<TAB>`` refers to the TAB key) To 
+Start IPython and import `ctx-python`: `import ctxpy as ctx`. Then, directly paste or 
+use the ``%cpaste`` magic to paste examples into the shell. To see which functions are 
+available in `ctx-python`, type ``ctx.<TAB>`` (where ``<TAB>`` refers to the TAB key) To 
 view the  docstring for a function, use ``ctx.Chemical?<ENTER>`` (to view the docstring) 
 and ``ctx.Chemical??<ENTER>`` (to view the source code).
 
 Disclaimer
 ----------
-`py-ctx` was developed by the U.S. Environmental Protection Agency (USEPA). 
+`ctx-python` was developed by the U.S. Environmental Protection Agency (USEPA). 
 No warranty expressed or implied is made regarding the accuracy or utility 
 of the system, nor shall the act of distribution constitute any such warranty. The 
 USEPA has relinquished control of the information and no longer has responsibility 
@@ -61,7 +61,7 @@ from .exposure import Exposure
 __all__ = ["Chemical", "Exposure"]
 
 _disclaimer = """
-`py-ctx` was developed by the U.S. Environmental Protection Agency 
+`ctx-python` was developed by the U.S. Environmental Protection Agency 
 (USEPA). No warranty expressed or implied is made regarding the accuracy or utility 
 of the system, nor shall the act of distribution constitute any such warranty. The 
 USEPA has relinquished control of the information and no longer has responsibility 
@@ -73,4 +73,4 @@ any manner to imply endorsement of any commercial product or activity by the USE
 the United States Government.
 """
 if not version_info >= (3,10):
-    raise RuntimeError("`py-ctx` needs Python 3.10 or higher.")
+    raise RuntimeError("`ctx-python` needs Python 3.10 or higher.")
