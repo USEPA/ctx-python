@@ -48,9 +48,14 @@ class Connection:
             self.host = config.pop("host")
             self.headers = config
 
-    def get(self):
+    def get(self, suffix: str):
         """
         Request informaiton via API call
+        
+        Paramters
+        ---------
+        suffix : string
+            the suffix of the API call that will determine what is searched for and how
         
         Returns
         -------
@@ -58,7 +63,7 @@ class Connection:
         """
         try:
             self.response = requests.get(
-                f"{self.host}{self.suffix}", headers=self.headers
+                f"{self.host}{suffix}", headers=self.headers
             )
         except Exception as e:
             ## TODO: make this a more informative error message
@@ -72,11 +77,19 @@ class Connection:
 
         return info
 
-    def post(self, word: str):
+    def post(self, suffix: str, word: str):
         """
         Request information via API call, but also supply stipulations on subsets or
         specific aspects of returned information
         
+        Paramters
+        ---------
+        suffix : string
+            the suffix of the API call that will determine what is searched for and how
+
+        word : string
+            extra data passed to the API call; used by batch search calls
+
         Returns
         -------
         dict, JSON information that was requested in the API call
@@ -85,7 +98,7 @@ class Connection:
             self.headers = {**self.headers, **{"content-type": "application/json"}}
 
             self.response = requests.post(
-                f"{self.host}{self.suffix}", headers=self.headers, data=word
+                f"{self.host}{suffix}", headers=self.headers, data=word
             )
         except Exception as e:
             ## TODO: make this a more informative error message
