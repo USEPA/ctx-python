@@ -28,7 +28,7 @@ def toxprints():
 
     """
 
-    with open(resources.path("ctepy.data", "toxprints.txt"), "r") as f:
+    with open(resources.path("ctxpy.data", "toxprints.txt"), "r") as f:
         toxps = f.read().splitlines()
 
     return toxps
@@ -70,6 +70,20 @@ class Chemical(Connection):
     def __init__(self, x_api_key: Optional[str] = None):
         super().__init__(x_api_key=x_api_key)
         self.kind = "chemical"
+
+    @classmethod
+    def baby_search(cls, by: str, word: Union[str, Iterable[str]]):
+        options = {
+            "starts-with": "start-with",
+            "equals": "equal",
+            "contains": "contain",
+            "batch": "equal",
+        }
+        word = quote(word, safe="")
+        suffix = f"{cls.kind}/search/{options[by]}/{word}"
+
+        info = super(Chemical, cls).get(suffix=suffix)
+        return info
 
     def search(self, by: str, word: Union[str, Iterable[str]]):
         """
@@ -226,8 +240,8 @@ class Chemical(Connection):
 
                     ## TODO: Check that suffix is re-written on each loop,
                     ## not appended to
-                    self.suffix = f"{self.kind}/search/{options[by]}/"
-                    chunks.append(super(Chemical, self).post(word=word))
+                    suffix = f"{self.kind}/search/{options[by]}/"
+                    chunks.append(super(Chemical, self).post(suffix = suffix, word=word))
 
                 ## Convert to warning
                 raise ValueError(
@@ -238,15 +252,15 @@ class Chemical(Connection):
             else:
                 word = "\n".join([quote(w, safe="") for w in word])
 
-                self.suffix = f"{self.kind}/search/{options[by]}/"
+                suffix = f"{self.kind}/search/{options[by]}/"
 
-                info = super(Chemical, self).post(word=word)
+                info = super(Chemical, self).post(suffix=suffix, word=word)
 
         else:
             word = quote(word, safe="")
-            self.suffix = f"{self.kind}/search/{options[by]}/{word}"
+            suffix = f"{self.kind}/search/{options[by]}/{word}"
 
-            info = super(Chemical, self).get()
+            info = super(Chemical, self).get(suffix=suffix)
 
         return info
 
@@ -373,8 +387,8 @@ class Chemical(Connection):
             word = [quote(w, safe="") for w in word]
             word = '["' + '","'.join(word) + '"]'
 
-            self.suffix = f"{self.kind}/detail/search/{by_options[by]}/"
-            info = super(Chemical, self).post(word=word)
+            suffix = f"{self.kind}/detail/search/{by_options[by]}/"
+            info = super(Chemical, self).post(word=word, suffix=suffix)
 
         else:
             if not isinstance(word, str):
@@ -385,14 +399,14 @@ class Chemical(Connection):
             word = quote(word, safe="")
 
             if subset is None:
-                self.suffix = f"{self.kind}/detail/search/{by_options[by]}/{word}"
+                suffix = f"{self.kind}/detail/search/{by_options[by]}/{word}"
             else:
-                self.suffix = (
+                suffix = (
                     f"{self.kind}/detail/search/{by_options[by]}/{word}"
                     f"?projection={subset_options[subset]}"
                 )
 
-            info = super(Chemical, self).get()
+            info = super(Chemical, self).get(suffix=suffix)
 
         return info
 
@@ -499,11 +513,11 @@ class Chemical(Connection):
                 )
 
             word = f"{start}/{end}"
-            self.suffix = f"{self.kind}/msready/search/{options[by]}/{word}"
+            suffix = f"{self.kind}/msready/search/{options[by]}/{word}"
 
         else:
             word = quote(word, safe="")
-            self.suffix = f"{self.kind}/msready/search/{options[by]}/{word}"
+            suffix = f"{self.kind}/msready/search/{options[by]}/{word}"
 
             if not isinstance(word, str):
                 raise TypeError(f"Argument `by` is {by}, " "but `word` is not string.")
@@ -512,7 +526,7 @@ class Chemical(Connection):
         ## with the floats?
         word = quote(word, safe="")
 
-        info = super(Chemical, self).get()
+        info = super(Chemical, self).get(suffix=suffix)
 
         return info
 
