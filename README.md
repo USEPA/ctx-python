@@ -26,6 +26,7 @@ chem = ctx.Chemical(x_api_key='648a3d70')
 ```{bash}
 [user@host~]$ ctx_init --x-api-key 648a3d70
 ```
+This will result in the .env file having three new environment variables added to the file: `ctx_api_host`, `ctx_api_accept`, `ctx_x_api_key`.
 
 ```{python}
 import ctxpy as ctx

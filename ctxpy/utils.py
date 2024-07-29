@@ -49,6 +49,7 @@ def write_env(data:dict, env_file: Optional[Union[str, Path]] = None):
     if env_file is None:
         env_file = Path.home() / ".env"
     for k, v in data.items():
+        print("this is the write_env call",k,v)
         set_key(env_file, k, v)
     return
 
@@ -77,9 +78,9 @@ def read_env(env_file: Optional[Union[str, Path]] = None):
         raise FileNotFoundError(f"{env_file.as_posix()} does not exist.")
 
     config = dotenv_values(env_file)
-    config = {"-".join(k.lower().split("_")[2:]):v for k,v in config.items()}
+    # config = {"-".join(k.lower().split("_")[2:]):v for k,v in config.items()}
 
-    if "x-api-key" not in config.keys():
-        raise KeyError(f"x-api-key not found in {env_file.as_posix()} file.")
+    # if "x-api-key" not in config.keys():
+    #     raise KeyError(f"x-api-key not found in {env_file.as_posix()} file.")
 
     return config

@@ -45,8 +45,9 @@ class Connection:
 
         else:
             config = read_env()
-            self.host = config.pop("host")
-            self.headers = config
+            self.host = config["ctx_api_host"]
+            self.headers = {"accept":config['ctx_api_accept'],
+                            "x-api-key":config['ctx_api_x_api_key']}
 
     def get(self, suffix: str):
         """

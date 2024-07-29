@@ -59,6 +59,7 @@ from .chemical import Chemical
 from .exposure import Exposure
 
 __all__ = ["Chemical", "Exposure"]
+__version__ = "0.0.1-alpha.2"
 
 _disclaimer = """
 `ctx-python` was developed by the U.S. Environmental Protection Agency 

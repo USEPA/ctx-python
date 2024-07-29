@@ -1,49 +1,61 @@
 import argparse
 import sys
 from pathlib import Path
+from typing import Optional, Union
+
+from dotenv import unset_key
 
 from .utils import read_env, write_env
 
-
-def init(x_api_key: str, override: bool=False):
+## TODO: CLI tests
+def init(ctx_api_x_api_key: str, override: bool=False, env_file: Optional[Union[str,Path]]=None):
     """
-    Initialize the config.toml file for this package, so that a user's API is
+    Initialize the .env file for this package, so that a user's API is
     stored and accessed from a centralized location.
 
     Parameters
     ----------
-    x_api_key [string]: personal API key obtained by emailing ccte_api@epa.gov
-
-    override [bool]: if True, override existing API key in .env.ctx file
+    x_api_key:string
+        personal API key obtained by emailing ccte_api@epa.gov
+    override: bool (default False)
+        if True, override existing API key in .env file
+    env_file: optional, string or pathlib.Path
+        name and location of .env file (defaults to ~/.env)
 
     """
     data = {
-        "host": "https://api-ccte.epa.gov/",
-        "accept": "application/json",
-        "x-api-key": x_api_key,
+        "ctx_api_host": "https://api-ccte.epa.gov/",
+        "ctx_api_accept": "application/json",
+        "ctx_api_x_api_key": ctx_api_x_api_key,
     }
-    print(f"Override is {override}")
 
-    path = Path.home() / ".env"
+    if env_file is None:
+        env_file = Path.home() / ".env"
 
-    if not path.is_file():
-        if not path.parent.is_dir():
-            path.parent.mkdir(parents=True, exist_ok=False)
-
-        write_env(data, path)
+    # Does the file already exist?
+    if not env_file.is_file():
+        # No, then make it and populate it
+        write_env(data, env_file=env_file)
 
     else:
-        try:
-            data = read_env(path)
-        except KeyError:
-            raise SystemExit(f"{path} does not have x-api-key for CCTE APIs.")
-        print(data)
-        if not override:
-            raise SystemExit(f"Error: x-api-key already exists in {path}. "
-                   "Use `--override` to override existing key with passed key.")
+        # Yes, then read in the env vars in the file
+        data = read_env(env_file=env_file)
         
-        data['x-api-key'] = x_api_key
-        write_env(data,path)
+        # Should we override existing keys?
+        if override:
+            # unset_key(dotenv_path=env_file,key_to_unset='ctx_api_x_api_key')
+            data["ctx_api_x_api_key"] = ctx_api_x_api_key
+            write_env(data,env_file=env_file)
+            
+        else:
+            # If not add providied key only if key is not in file already
+            if 'ctx_api_x_api_key' not in data.keys():
+                data["ctx_api_x_api_key"] = ctx_api_x_api_key
+                write_env(data,env_file=env_file)
+                
+            else:
+                raise SystemExit(f"Error: ctx_x_api_key variable exists in {env_file}. "
+                   "Use `--override` to override existing key with passed key.")
 
     return
 
@@ -51,7 +63,6 @@ def init(x_api_key: str, override: bool=False):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-x", "--x-api-key", help="string containing API key")
-    parser.add_argument("-s", "--source", help="type of source for data from API")
     parser.add_argument(
         "-o",
         "--override",
@@ -62,5 +73,5 @@ def main():
         parser.print_help()
     else:
         args = parser.parse_args()
-        init(x_api_key=args.x_api_key, override=args.override)
+        init(ctx_api_x_api_key=args.x_api_key, override=args.override)
     return
