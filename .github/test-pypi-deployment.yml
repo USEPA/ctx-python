@@ -7,7 +7,7 @@ name: Docker-ghcr
 
 on:
   push:
-    branches: [ "pypi-test-auto-integration2" ]
+    branches: [ "pypi-test-auto-integration" ]
 
 jobs:
   deploy-package:
