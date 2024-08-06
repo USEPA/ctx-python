@@ -11,13 +11,7 @@ on:
 
 jobs:
   deploy-package:
-
     runs-on: ubuntu-latest
-    environment: ${{ github.head_ref || github.ref_name }}
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
 
     steps:
       - name: Checkout repository
