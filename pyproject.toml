@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ctx-python"
-version = "0.0.1-alpha.2"
+version = "0.0.1-alpha.3"
 description = "A Python API client for US EPA's Computational Toxicology and Exposure APIs."
 authors = ["Katherine Phillips <phillips.katherine@epa.gov>"]
 readme = "README.md"
