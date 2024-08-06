@@ -21,5 +21,4 @@ jobs:
         uses: JRubics/poetry-publish@v2.0
         with:
           pypi_token: ${{ secrets.TEST_PYPI_TOKEN }}
-          poetry_publish_options: "--dry-run"
           repository_name: "test-pypi"
