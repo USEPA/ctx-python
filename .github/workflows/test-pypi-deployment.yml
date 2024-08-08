@@ -7,7 +7,7 @@ name: poetry-test-deploy
 
 on:
   push:
-    branches: [ "pypi-test-auto-integration" ]
+    branches: [ "staging" ]
 
 jobs:
   deploy-package:
