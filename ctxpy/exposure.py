@@ -1,4 +1,3 @@
-import pandas as pd
 from typing import Optional
 from urllib.parse import quote
 
@@ -159,10 +158,10 @@ class Exposure(Connection):
         if by not in options.keys():
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
 
-        self.suffix = f"{self.kind}/{options[by]}/{word}"
-        self.data = super(Exposure, self).get()
+        suffix = f"{self.kind}/{options[by]}/{word}"
+        self.data = super(Exposure, self).get(suffix=suffix)
 
-        return self
+        return self.data
 
     def vocabulary(self, by):
         """
@@ -243,13 +242,8 @@ class Exposure(Connection):
         if by not in options.keys():
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
 
-        self.suffix = f"{self.kind}/{options[by]}"
-        self.data = super(Exposure, self).get()
+        suffix = f"{self.kind}/{options[by]}"
+        self.data = super(Exposure, self).get(suffix=suffix)
 
         return self.data
-    
 
-    def to_df(self):
-        if not hasattr(self,'data'):
-            raise AttributeError("No data to convert to DataFrame")
-        return pd.DataFrame(self.data)
