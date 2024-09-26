@@ -21,5 +21,3 @@ jobs:
         uses: JRubics/poetry-publish@v2.0
         with:
           pypi_token: ${{ secrets.PYPI_TOKEN }}
-          repository_name: "pypi"
-          repository_url: "https://pypi.org/pypi"
