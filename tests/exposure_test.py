@@ -3,7 +3,7 @@ import time
 import ctxpy as ctx
 
 
-class TestChemical(unittest.TestCase):
+class TestExposure(unittest.TestCase):
     
     @classmethod
     def setUpClass(cls):
@@ -57,7 +57,7 @@ class TestChemical(unittest.TestCase):
 
     def test_lpk_vocabulary(self):
         keys = ['id','tagName','tagDefinition','kindName']
-        test = self._conn.vobabulary(by='lpk')
+        test = self._conn.vocabulary(by='lpk')
         self.assertTrue(all([k in keys for i in test for k in i.keys()]))
 
 
