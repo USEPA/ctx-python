@@ -57,8 +57,9 @@ from sys import version_info
 
 from .chemical import Chemical
 from .exposure import Exposure
+from .chemical_list import ChemicalList
 
-__all__ = ["Chemical", "Exposure"]
+__all__ = ["Chemical", "Exposure","ChemicalList"]
 __version__ = "0.0.1-alpha.4"
 
 _disclaimer = """
