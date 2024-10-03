@@ -52,9 +52,25 @@ class Exposure(Connection):
         else:
             return f"Connection.{str.title(self.kind)}"
 
-    def search(self, by, word):
+
+    def _search(self, by: str, word: Optional[str] = None):
         """
-        Search for a type of exposure information using a DTXSID.
+
+        """
+        if word is not None:
+            word = quote(word, safe="")
+            suffix = f"{self.kind}/{by}/{word}"
+        else:
+            suffix = f"{self.kind}/{by}"
+
+        self.data = super(Exposure, self).get(suffix=suffix)
+
+        return self.data
+
+
+    def search_cpdat(self, vocab_name, dtxsid):
+        """
+        Search for a DTXSID's categorization within a specified CPDat vocabulary.
 
         For a single chemical, search for 1) reported functional uses,
         2) predicted functional uses, 3) product that report this chemical as an
@@ -63,13 +79,13 @@ class Exposure(Connection):
 
         Parameters
         ----------
-        by : string
+        vocab_name : string
             The type of search method to use. Options are "fc", "qsur",
             "puc", or "lpk". "fc" is reported functional use, "qsur" is
             predicted functional use, "puc" is product information, and "lpk" is
             chemical list presence information.
 
-        word : string
+        dtxsid : string
             If string, the single chemical identifer (or part of the identifier)
             to search for. If iterable, a list or tuple of identifiers to search
             for.
@@ -147,23 +163,147 @@ class Exposure(Connection):
           'keywordset': 'Canada; pharmaceutical'},
          ...]
         """
-        word = quote(word, safe="")
+        dtxsid = quote(dtxsid, safe="")
 
         options = {
-            "fc": "functional-use/search/by-dtxsid",
-            "qsur": "functional-use/probability/search/by-dtxsid",
-            "puc": "product-data/search/by-dtxsid",
-            "lpk": "list-presence/search/by-dtxsid",
+            "fc":   "functional-use/search/by-dtxsid",
+            "puc":  "product-data/search/by-dtxsid",
+            "lpk":  "list-presence/search/by-dtxsid",
+        }
+        if vocab_name not in options.keys():
+            raise KeyError(f"Value {vocab_name} is invalid option for argument `by`.")
+
+        self.data = self._search(by=options[vocab_name],word=dtxsid)
+
+        return self.data
+
+
+    def search_qsurs(self, dtxsid):
+        """
+        Search for Quantitative Structure-Use Relationship (QSUR) predictions by DTXSID.
+
+        For a single chemical, search for 1) consensus, general population exposure 
+        estimate using the SEEM 3 Framework or 2) component model predictions that make
+        up the consensus SEEM 3 estimate.
+
+        Parameters
+        ----------
+        dtxsid : string
+            If string, the single chemical identifer (or part of the identifier)
+            to search for. If iterable, a list or tuple of identifiers to search
+            for.
+
+        Return
+        ------
+        list
+            a list of dicts with each dict being a reported value -- controlled
+            vocabulary pair along with information about the reporting document
+        """
+        word = quote(dtxsid, safe="")
+
+        self.data = self._search(by="functional-use/probability/search/by-dtxsid",word=word)
+
+        return self.data
+
+
+    def search_exposures(self, by, dtxsid):
+        """
+        Search for exposure estimates by DTXSID.
+
+        For a single chemical, search for 1) exposure estimates for a chemical based on
+        the SEEM 3 framework published in Ring 2018 or 2) exposure pathway predictions 
+        that are sourced from pathway prediction models (also published in Ring 2018).
+
+        Parameters
+        ----------
+        by : string
+            The type of search method to use. Options are "pathways" or "seem".
+            The "pathways" argument option returns the probability of exposure occuring
+            along four exposure pathways defined in Ring 2018 (dietary, consumer, 
+            far-field pesticide source, and far-field industrial source); information is
+            also provided on the reported production volume from the 2015 Chemical Data
+            Reporting cycle in the U.S. as well as the Stockholm Convention for
+            Persistent Organic Pollutants list. These two sources were crucial inputs
+            for predicting exposure pathways.
+            "seem" returns the different model predictions that lead to the "consensus"
+            estimate.
+
+        dtxsid : string
+            A DSSTox Substance Identifier that is used for search for a specific
+            chemical.
+
+        Return
+        ------
+        list
+            a list of dicts with each dict being a reported value -- controlled
+            vocabulary pair along with information about the reporting document
+
+
+        Examples
+        --------
+        Search for reported functional uses
+        >>> expo.search_exposures(by="consensus",dtxsid="DTXSID7020182")
+        >>> expo.search_exposures(by="seem",dtxsid="DTXSID7020182")
+
+        """
+        dtxsid = quote(dtxsid, safe="")
+
+        options = {
+            "pathways": "seem/general/search/by-dtxsid",
+            "seem": "seem/demographic/search/by-dtxsid"
         }
         if by not in options.keys():
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
 
-        suffix = f"{self.kind}/{options[by]}/{word}"
-        self.data = super(Exposure, self).get(suffix=suffix)
+        self.data = self._search(by=options[by],word=dtxsid)
 
         return self.data
 
-    def vocabulary(self, by):
+
+    def search_httk(self, dtxsid):
+        """
+        Search for High-Throughput Toxicokinetics data by DTXSID.
+
+        For a single chemical, search for 1) consensus, general population exposure 
+        estimate using the SEEM 3 Framework or 2) component model predictions that make
+        up the consensus SEEM 3 estimate.
+
+        Parameters
+        ----------
+        dtxsid : string
+            If string, the single chemical identifer (or part of the identifier)
+            to search for. If iterable, a list or tuple of identifiers to search
+            for.
+
+        Return
+        ------
+        list
+            a list of dicts with each dict being a reported value -- controlled
+            vocabulary pair along with information about the reporting document
+
+
+        Examples
+        --------
+        Search for reported functional uses
+        >>> expo.search_httk(dtxsid="DTXSID7020182")
+        [{'id': 22724,
+          'dtxsid': 'DTXSID7020182',
+          'datatype': 'Chemical presence list',
+          'docid': 1371471,
+          'doctitle': 'The 25 Chemicals Found in All Nine of the Biosolids Studied',
+          'docdate': '',
+          'reportedfunction': 'fire retardant',
+          'functioncategory': 'Flame retardant'},
+         ...]
+
+        """
+        word = quote(dtxsid, safe="")
+
+        self.data = self._search(by="httk/search/by-dtxsid",word=word)
+
+        return self.data
+
+    def get_cpdat_vocabulary(self, vocab_name):
         """
         Search for a type of exposure information using a DTXSID.
 
@@ -174,10 +314,10 @@ class Exposure(Connection):
 
         Parameters
         ----------
-        by : string
-            The type of vocabulary to return. Options are "fc", "qsur",
-            "puc", or "lpk". "fc" is Function Category, "puc" is product use
-            category, and "lpk" is list presence keyword.
+        vocab_name : string
+            Name of the vocabulary to return. Options are "fc", "qsur",
+            "puc", or "lpk". "fc" is Function Category, 
+            "puc" is product use category, and "lpk" is list presence keyword.
 
         Return
         ------
@@ -239,11 +379,10 @@ class Exposure(Connection):
             "puc": "product-data/puc",
         }
 
-        if by not in options.keys():
-            raise KeyError(f"Value {by} is invalid option for argument `by`.")
+        if vocab_name not in options.keys():
+            raise KeyError(f"{vocab_name} is invalid Exposure vocabulary name.")
 
-        suffix = f"{self.kind}/{options[by]}"
-        self.data = super(Exposure, self).get(suffix=suffix)
+        self.data = self._search(by=options[vocab_name],)
 
         return self.data
 
