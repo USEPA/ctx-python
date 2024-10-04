@@ -8,7 +8,7 @@ class TestChemical(unittest.TestCase):
         cls._conn = ctx.ChemicalList()
 
     def tearDown(self):
-        time.sleep(3)
+        time.sleep(1)
 
     def test_connection(self):
         self.assertEqual(self._conn.host, "https://api-ccte.epa.gov/")

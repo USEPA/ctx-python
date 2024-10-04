@@ -3,7 +3,6 @@ from typing import Iterable, Optional, Union
 from urllib.parse import quote
 
 from .base import Connection
-from .utils import chunker
 
 
 def toxprints():
@@ -228,20 +227,14 @@ class Chemical(Connection):
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
 
         if by == "batch":
+            suffix = f"{self.kind}/search/{options[by]}/"
+            
             if (not isinstance(word, Iterable)) or (isinstance(word, str)):
                 raise TypeError(
                     "Arugment `by` is 'batch', " "but `word` is not an list-type."
                 )
-            ## API only handles 200 at a time.
-            if len(word) > 200:
-                chunks = []
-                for chunk in chunker(word, 200):
-                    word = "\n".join([quote(w, safe="") for w in word])
 
-                    ## TODO: Check that suffix is re-written on each loop,
-                    ## not appended to
-                    suffix = f"{self.kind}/search/{options[by]}/"
-                    chunks.append(super(Chemical, self).post(suffix = suffix, word=word))
+                info = super(Chemical,self).batch(suffix=suffix,word=word)
 
                 ## Convert to warning
                 raise ValueError(
@@ -251,8 +244,6 @@ class Chemical(Connection):
 
             else:
                 word = "\n".join([quote(w, safe="") for w in word])
-
-                suffix = f"{self.kind}/search/{options[by]}/"
 
                 info = super(Chemical, self).post(suffix=suffix, word=word)
 
@@ -384,11 +375,17 @@ class Chemical(Connection):
                     "Arugment `by` is 'batch', " "but `word` is not an list-type."
                 )
 
-            word = [quote(w, safe="") for w in word]
-            word = '["' + '","'.join(word) + '"]'
-
             suffix = f"{self.kind}/detail/search/{by_options[by]}/"
-            info = super(Chemical, self).post(word=word, suffix=suffix)
+            info = super(Chemical,self).batch(suffix=suffix,word=word)
+
+            ## API only handles 1000 at a time.
+            
+            # if len(word) > config.n_api_calls:
+            #     chunks = []
+            #     for chunk in chunker(word, config.n_api_calls):
+            #         word = [quote(w, safe="") for w in word]
+            #         word = '["' + '","'.join(word) + '"]'
+            #         chunks.append(super(Chemical, self).post(suffix=suffix, word=word))
 
         else:
             if not isinstance(word, str):

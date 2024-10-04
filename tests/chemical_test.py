@@ -9,7 +9,7 @@ class TestChemical(unittest.TestCase):
         cls._conn = ctx.Chemical()
 
     def tearDown(self):
-        time.sleep(3)
+        time.sleep(1)
 
     def test_connection(self):
         self.assertEqual(self._conn.host, "https://api-ccte.epa.gov/")
@@ -83,7 +83,7 @@ class TestChemical(unittest.TestCase):
             "DTXSID3021807": "InChI=1S/C8H10/c1-7-5-3-4-6-8(7)2/h3-6H,1-2H3",
             "DTXSID6026298": "InChI=1S/C8H10/c1-7-4-3-5-8(2)6-7/h3-6H,1-2H3",
         }
-        test_search = self._conn.details(by="batch", word=chemicals.keys())
+        test_search = self._conn.details(by="batch", word=list(chemicals.keys()))
         self.assertTrue(len(test_search), 4)
 
         for chem in test_search:
@@ -111,7 +111,7 @@ class TestChemical(unittest.TestCase):
             "DTXSID6026298": "InChI=1S/C8H10/c1-7-4-3-5-8(2)6-7/h3-6H,1-2H3",
         }
         test_search = self._conn.details(
-            by="batch", word=chemicals.keys(), subset="all"
+            by="batch", word=list(chemicals.keys()), subset="all"
         )
         self.assertTrue(len(test_search), 4)
 
@@ -145,7 +145,7 @@ class TestChemical(unittest.TestCase):
             "DTXSID6026298": "InChI=1S/C8H10/c1-7-4-3-5-8(2)6-7/h3-6H,1-2H3",
         }
         test_search = self._conn.details(
-            by="batch", word=chemicals.keys(), subset="details"
+            by="batch", word=list(chemicals.keys()), subset="details"
         )
         self.assertTrue(len(test_search), 4)
 
@@ -172,7 +172,7 @@ class TestChemical(unittest.TestCase):
             "DTXSID6026298": "IVSZLXZYQVIEFR-UHFFFAOYSA-N",
         }
         test_search = self._conn.details(
-            by="batch", word=chemicals.keys(), subset="identifiers"
+            by="batch", word=list(chemicals.keys()), subset="identifiers"
         )
         self.assertTrue(len(test_search), 4)
 
@@ -205,7 +205,7 @@ class TestChemical(unittest.TestCase):
             "DTXSID6026298": "InChI=1S/C8H10/c1-7-4-3-5-8(2)6-7/h3-6H,1-2H3",
         }
         test_search = self._conn.details(
-            by="batch", word=chemicals.keys(), subset="structures"
+            by="batch", word=list(chemicals.keys()), subset="structures"
         )
         self.assertTrue(len(test_search), 4)
 
@@ -230,7 +230,7 @@ class TestChemical(unittest.TestCase):
             "DTXSID6026298": "IVSZLXZYQVIEFR-UHFFFAOYSA-N",
         }
         test_search = self._conn.details(
-            by="batch", word=chemicals.keys(), subset="nta"
+            by="batch", word=list(chemicals.keys()), subset="nta"
         )
         self.assertTrue(len(test_search), 4)
 

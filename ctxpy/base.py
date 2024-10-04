@@ -1,10 +1,11 @@
 import json
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Union, Iterable
 
 import requests
+from urllib.parse import quote
 
-from .utils import read_env
+from .utils import read_env, chunker
 
 
 class Connection:
@@ -112,3 +113,23 @@ class Connection:
             raise SystemError(e)
 
         return info
+    
+    def batch(self, suffix: str, word: Iterable[str], batch_size: int = 1000):
+
+        if (batch_size > 1000):
+            raise ValueError("CCTE APIs do not accept batch calls with more than "
+                             f"1000 values. `batch_size` is set to {batch_size} in "
+                             "function call.")
+
+        chunks = []
+        for chunk in chunker(word, batch_size):
+            if "detail" in suffix:
+                words = [quote(w, safe="") for w in chunk]
+                words = '["' + '","'.join(words) + '"]'
+            else:
+                words = "\n".join([quote(w, safe="") for w in chunk])
+
+            ## TODO: Check that suffix is re-written on each loop,
+            ## not appended to
+            chunks.extend(self.post(suffix = suffix, word=words))
+        return chunks
