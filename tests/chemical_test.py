@@ -51,7 +51,7 @@ class TestChemical(unittest.TestCase):
         test_search = self._conn.search(by="batch", word=chemicals)
         self.assertEqual(len(test_search), 4)
 
-        ## TODO: the API does something with the search string such that the
+        ## BUG: the API does something with the search string such that the
         # `searchValue` is not the same as the string I feed it -- need to figure out
         # what this is, so that I can check it. I could then use
         # `self.assertCountEqual([i['searchValue'] for i in test_search],chemicals)`

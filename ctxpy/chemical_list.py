@@ -1,12 +1,10 @@
-from importlib import resources
-from typing import Iterable, Optional, Union
+from typing import Optional
 from urllib.parse import quote
 
-from .base import Connection
-from .utils import chunker
+from .base import CTXConnection
 
 
-class ChemicalList(Connection):
+class ChemicalList(CTXConnection):
     """
     An API Connection to CCTE's chemical list data.
 
