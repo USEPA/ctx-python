@@ -71,7 +71,6 @@ class CTXConnection:
         except Exception as e:
             ## TODO: make this a more informative error message
             raise SystemError(e)
-
         try:
             info = json.loads(self.response.content.decode("utf-8"))
         except json.JSONDecodeError as e:
