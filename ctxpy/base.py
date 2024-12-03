@@ -121,6 +121,9 @@ class CTXConnection:
         here will help the users specify this.
         """
 
+        ## Remove duplicated DTXSIDs
+        word = list(set(word))
+
         chunks = []
         for chunk in chunker(word, batch_size):
             
