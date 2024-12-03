@@ -2,10 +2,8 @@ import pandas as pd
 from pandas.api.types import is_list_like
 from typing import Optional, Iterable
 from urllib.parse import quote
-from time import sleep
 
 from .base import CTXConnection
-from .utils import chunker
 
 
 class Hazard(CTXConnection):
