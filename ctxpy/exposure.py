@@ -52,7 +52,7 @@ class Exposure(CTXConnection):
 
     def _search(self, by: str, word: Optional[str] = None):
         """
-
+        Helper function to implement Exposure searches
         """
         if word is not None:
             word = quote(word, safe="")
@@ -65,8 +65,15 @@ class Exposure(CTXConnection):
         return info.fillna(pd.NA).replace("-",pd.NA).replace("",pd.NA)
 
     def _batch(self,by,words,insert_id=False):
+        """
+        Helper function to implement batch Exposure searches
+        """
         ## TODO: when post is added to exposure endpoints replace this with
         ## `super().batch()`
+        
+        ## Remove duplicated DTXSIDs
+        words = list(set(words))
+        
         info = []
         for word in words:
             word = quote(word, safe="")
@@ -81,12 +88,12 @@ class Exposure(CTXConnection):
 
     def search_cpdat(self, vocab_name, dtxsid):
         """
-        Search for a DTXSID's categorization within a specified CPDat vocabulary.
+        Search for CPDat information by CPDat vocabulary and DTXSID(s).
 
-        For a single chemical, search for 1) reported functional uses,
-        2) predicted functional uses, 3) product that report this chemical as an
-        ingredient, or 4) annotated lists of chemicals that contain this
-        chemical.
+        CPDat vocabularies are defined in Handa et al. 2025. For a single chemical or 
+        list of chemicals search for 1) reported functional uses, 2) products that 
+        report this chemical as an ingredient, or 3) annotated lists of chemicals that
+        contain the searched chemical(s).
 
         Parameters
         ----------
@@ -97,9 +104,8 @@ class Exposure(CTXConnection):
             chemical list presence information.
 
         dtxsid : string or list-like
-            If string, the single chemical identifer (or part of the identifier)
-            to search for. If list-like, a list or tuple of identifiers to search
-            for.
+            If string, then a single DTXSID is expected. If list like, then a list of 
+            DTXSIDs is expected.
 
         Return
         ------
@@ -166,18 +172,18 @@ class Exposure(CTXConnection):
 
     def search_qsurs(self, dtxsid):
         """
-        Search for Quantitative Structure-Use Relationship (QSUR) predictions by DTXSID.
+        Search for Quantitative Structure-Use Relationship (QSUR) predictions by
+        DTXSID(s).
 
-        For a single chemical, search for 1) consensus, general population exposure 
-        estimate using the SEEM 3 Framework or 2) component model predictions that make
-        up the consensus SEEM 3 estimate.
+        QSURs are defined in Phillips et al. 2017 (DOI: 10.1039/C6GC02744J). Predicted
+        functional uses are returned for the provided DTXSID(s). Only predictions that 
+        are within the domain of applicability for a model are returned.
 
         Parameters
         ----------
-        dtxsid : string
-            If string, the single chemical identifer (or part of the identifier)
-            to search for. If iterable, a list or tuple of identifiers to search
-            for.
+        dtxsid : string or list-like
+            If string, then a single DTXSID is expected. If list like, then a list of 
+            DTXSIDs is expected.
 
         Return
         ------
@@ -188,7 +194,7 @@ class Exposure(CTXConnection):
 
         Examples
         --------
-        Search for predicted functional uses:
+        Search for predicted functional uses of a single chemical:
         
         >>> expo.search_qsurs(dtxsid='DTXSID7020182')
 
@@ -200,6 +206,30 @@ class Exposure(CTXConnection):
         4              crosslinker       0.7743
         5          flame_retardant       0.2208
 
+        Search for predicted functional uses of multiple chemicals
+
+        >>> expo.search_qsurs(dtxsid=['DTXSID2021868','DTXSID7021360'])
+                   dtxsid harmonizedFunctionalUse  probability
+        0   DTXSID7021360           antimicrobial       0.2656
+        1   DTXSID7021360             antioxidant       0.3572
+        2   DTXSID7021360                catalyst       0.6912
+        3   DTXSID7021360                colorant       0.0889
+        4   DTXSID7021360             crosslinker       0.1637
+        5   DTXSID7021360               flavorant       0.4565
+        6   DTXSID7021360               fragrance       0.9633
+        7   DTXSID7021360            preservative       0.4460
+        8   DTXSID7021360        skin_conditioner       0.0150
+        9   DTXSID7021360         skin_protectant       0.1062
+        10  DTXSID7021360             uv_absorber       0.2577
+        11  DTXSID2021868           antimicrobial       0.2953
+        12  DTXSID2021868             antioxidant       0.3482
+        13  DTXSID2021868                catalyst       0.5329
+        14  DTXSID2021868                colorant       0.1129
+        15  DTXSID2021868             crosslinker       0.1402
+        16  DTXSID2021868               flavorant       0.3221
+        17  DTXSID2021868               fragrance       0.9874
+        18  DTXSID2021868        skin_conditioner       0.0289
+        19  DTXSID2021868         skin_protectant       0.1560
         """
         endpoint = "functional-use/probability/search/by-dtxsid"
         
@@ -219,39 +249,40 @@ class Exposure(CTXConnection):
         """
         Search for exposure estimates by DTXSID.
 
-        For a single chemical, search for 1) exposure estimates for a chemical based on
+        Search for 1) exposure estimates for a chemical or chemicals based on
         the SEEM 3 framework published in Ring 2018 or 2) exposure pathway predictions 
-        that are sourced from pathway prediction models (also published in Ring 2018).
+        that are sourced from pathway prediction models (also published in Ring 2018; 
+        DOI: 10.1021/acs.est.8b04056).
 
         Parameters
         ----------
         by : string
             The type of search method to use. Options are "pathways" or "seem".
             The "pathways" argument option returns the probability of exposure occuring
-            along four exposure pathways defined in Ring 2018 (dietary, consumer, 
-            far-field pesticide source, and far-field industrial source); information is
+            along four exposure pathways defined in Ring 2018 (dietary, residential, 
+            far-field pesticide, and far-field industrial); information is
             also provided on the reported production volume from the 2015 Chemical Data
             Reporting cycle in the U.S. as well as the Stockholm Convention for
             Persistent Organic Pollutants list. These two sources were crucial inputs
             for predicting exposure pathways.
-            "seem" returns the different model predictions that lead to the "consensus"
-            estimate.
+            "seem" returns the consensus exposure estimate as well as the individual 
+            exposure model predictions that lead to the consensus value. These estimates
+            are also broken out by demographic information.
 
-        dtxsid : string
-            A DSSTox Substance Identifier that is used for search for a specific
-            chemical.
+        dtxsid : string or list-like
+            If string, then a single DTXSID is expected. If list like, then a list of 
+            DTXSIDs is expected.
 
         Return
         ------
-        list
-            a list of dicts with each dict being a reported value -- controlled
-            vocabulary pair along with information about the reporting document
+        pandas DataFrame
+            dataframe of requested exposure pathway or exposure prediction values
 
 
         Examples
         --------
-        Search for consensus model inputs into seem
-        >>> expo.search_exposures(by="consensus",dtxsid="DTXSID7020182")
+        Search for exposure pathway predictions for a single chemical
+        >>> expo.search_exposures(by="pathways",dtxsid="DTXSID7020182")
 
                   dtxsid  productionVolume   units  probabilityPesticde  ...
         0  DTXSID7020182           2780000  kg/day                  0.0  ...
@@ -266,6 +297,14 @@ class Exposure(CTXConnection):
         3   784083  DTXSID7020182               Total      USETox.Pest  0.056240  ...
         4   785935  DTXSID7020182               Total    USETox.Indust  0.000137  ...
         5   749502  DTXSID7020182             Age 66+  SEEM2 Heuristic  0.000066  ...
+
+        Search for exposure pathway predictions for multiple chemicals
+        >>> expo.search_exposures(by='pathways',
+                                  dtxsid=['DTXSID2021868','DTXSID7021360'])
+
+                  dtxsid  productionVolume   units  probabilityPesticde  ...
+        0  DTXSID2021868           8780000  kg/day                0.640  ...
+        1  DTXSID7021360          17600000  kg/day                0.325  ...
 
         """
 
@@ -295,16 +334,15 @@ class Exposure(CTXConnection):
         
         Parameters
         ----------
-        dtxsid : string
-            If string, the single chemical identifer (or part of the identifier)
-            to search for. If iterable, a list or tuple of identifiers to search
-            for.
+        dtxsid : string or list-like
+            If string, then a single DTXSID is expected. If list like, then a list of 
+            DTXSIDs is expected.
 
         Return
         ------
-        list
-            a list of dicts with each dict being a reported value -- controlled
-            vocabulary pair along with information about the reporting document
+        pandas DataFrame
+            a data frame containing high-througput toxicokinetic data for the submitted 
+            chemical or chemicals.
 
 
         Examples
@@ -336,10 +374,11 @@ class Exposure(CTXConnection):
 
     def get_cpdat_vocabulary(self, vocab_name):
         """
-        Search for a type of exposure information using a DTXSID.
+        Retrieve a contolled vocabulary from CPDat.
 
-        Retrieve the entire controlled vocabulary (with definintions) for 1) function
-        categories (FCs), 2) product categories (puc), or 3) list presence keywords
+        Retrieve one of three controlled vocabularies (with definintions) in CPDat. 
+        CPDat vocabularies are defined in Handa et al. 2025. Options are function
+        categories (FCs), product use categories (puc) and list presence keywords
         (lpk).
 
         Parameters
