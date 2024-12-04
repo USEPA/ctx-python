@@ -59,9 +59,10 @@ from .chemical import Chemical
 from .exposure import Exposure
 from .hazard import Hazard
 from .chemical_list import ChemicalList
+from .cheminformatics import search_toxprints
 
-__all__ = ["Chemical", "Exposure","Hazard","ChemicalList"]
-__version__ = "0.0.1-alpha.4"
+__all__ = ["Chemical", "Exposure","Hazard","ChemicalList",'search_toxprints']
+__version__ = "0.0.1-alpha.5"
 
 _disclaimer = """
 `ctx-python` was developed by the U.S. Environmental Protection Agency 

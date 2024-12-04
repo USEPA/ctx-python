@@ -1,4 +1,5 @@
 import json
+import warnings
 from pathlib import Path
 from typing import Optional, Union, Iterable
 
@@ -176,9 +177,12 @@ class HCDConnection:
         """
         word = quote(smiles, safe="")
         try:
-            self.response = requests.get(
-                f"{self.host}{self.descriptors}{word}{self.headers}", verify = False
-            )
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore",category=requests.urllib3.connectionpool.InsecureRequestWarning)
+                self.response = requests.get(
+                    f"{self.host}{self.descriptors}{word}{self.headers}",
+                    verify = False
+                )
         except Exception as e:
             ## TODO: make this a more informative error message
             raise SystemError(e)
@@ -188,7 +192,6 @@ class HCDConnection:
         except json.JSONDecodeError as e:
             ## TODO: make this a more informative error message
             raise SystemError(e)
-        
-        info = {k:v for k,v in zip(info['headers'],info['chemicals'][0]['descriptors'])}
-        info = pd.Series(info).rename_axis("toxprints").rename(smiles)
+
+        info = info['chemicals'][0]['descriptors']
         return info
