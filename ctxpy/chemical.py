@@ -2,39 +2,10 @@ from importlib import resources
 from typing import Iterable, Optional, Union
 from urllib.parse import quote
 
-from .base import Connection
-from .utils import chunker
+from .base import CTXConnection
 
 
-def toxprints():
-    """
-    Get names of ToxPrints.
-
-    This function will retrieve the name of ToxPrints fingerprints, so that they
-    can be applied to the string of ToxPrints for a chemical or chemicals.
-
-    Parameters
-    ---------
-    None
-
-    Returns
-    -------
-    list
-        The names of the 729 ToxPrint fingerprints.
-
-    Examples
-    --------
-    >>> toxprints()
-
-    """
-
-    with open(resources.path("ctxpy.data", "toxprints.txt"), "r") as f:
-        toxps = f.read().splitlines()
-
-    return toxps
-
-
-class Chemical(Connection):
+class Chemical(CTXConnection):
     """
     An API Connection to CCTE's chemical data.
 
@@ -50,40 +21,29 @@ class Chemical(Connection):
 
     Returns
     -------
-    CCTE API Connection
+    CTXConnection specific to chemical searching endpoints
 
     See Also
     --------
     ccte_init
     Exposure
+    Hazard
 
     Examples
     --------
     Make a Connection with stored API Key in ~/.config/ccte_api/config.toml:
-    >>> expo = cte.Chemical()
+    >>> chem = ctx.Chemical()
 
     Make a Connection by providing an API Key
-    >>> expo = cte.Chemical(x_api_key='648a3d70')
+    >>> chem = ctx.Chemical(x_api_key='648a3d70')
 
     """
 
     def __init__(self, x_api_key: Optional[str] = None):
         super().__init__(x_api_key=x_api_key)
         self.kind = "chemical"
+        self.batch_size = 1000
 
-    @classmethod
-    def baby_search(cls, by: str, word: Union[str, Iterable[str]]):
-        options = {
-            "starts-with": "start-with",
-            "equals": "equal",
-            "contains": "contain",
-            "batch": "equal",
-        }
-        word = quote(word, safe="")
-        suffix = f"{cls.kind}/search/{options[by]}/{word}"
-
-        info = super(Chemical, cls).get(suffix=suffix)
-        return info
 
     def search(self, by: str, word: Union[str, Iterable[str]]):
         """
@@ -228,20 +188,17 @@ class Chemical(Connection):
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
 
         if by == "batch":
+            suffix = f"{self.kind}/search/{options[by]}/"
+            
             if (not isinstance(word, Iterable)) or (isinstance(word, str)):
                 raise TypeError(
                     "Arugment `by` is 'batch', " "but `word` is not an list-type."
                 )
-            ## API only handles 200 at a time.
-            if len(word) > 200:
-                chunks = []
-                for chunk in chunker(word, 200):
-                    word = "\n".join([quote(w, safe="") for w in word])
 
-                    ## TODO: Check that suffix is re-written on each loop,
-                    ## not appended to
-                    suffix = f"{self.kind}/search/{options[by]}/"
-                    chunks.append(super(Chemical, self).post(suffix = suffix, word=word))
+                info = super(Chemical,self).batch(suffix=suffix,
+                                                  word=word,
+                                                  batch_size=self.batch_size,
+                                                  bracketed=False)
 
                 ## Convert to warning
                 raise ValueError(
@@ -251,8 +208,6 @@ class Chemical(Connection):
 
             else:
                 word = "\n".join([quote(w, safe="") for w in word])
-
-                suffix = f"{self.kind}/search/{options[by]}/"
 
                 info = super(Chemical, self).post(suffix=suffix, word=word)
 
@@ -384,11 +339,11 @@ class Chemical(Connection):
                     "Arugment `by` is 'batch', " "but `word` is not an list-type."
                 )
 
-            word = [quote(w, safe="") for w in word]
-            word = '["' + '","'.join(word) + '"]'
-
             suffix = f"{self.kind}/detail/search/{by_options[by]}/"
-            info = super(Chemical, self).post(word=word, suffix=suffix)
+            info = super(Chemical,self).batch(suffix=suffix,
+                                              word=word,
+                                              batch_size=self.batch_size,
+                                              bracketed=True)
 
         else:
             if not isinstance(word, str):
@@ -529,11 +484,3 @@ class Chemical(Connection):
         info = super(Chemical, self).get(suffix=suffix)
 
         return info
-
-
-def get_toxprints(ids, id_types):
-    """
-    place holder for passing a list of ids and returning a dataframe of just
-    toxprints
-    """
-    return

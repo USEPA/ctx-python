@@ -1,3 +1,6 @@
+import pandas as pd
+from pandas.testing import assert_frame_equal
+import json
 import unittest
 import time
 import ctxpy as ctx
@@ -10,7 +13,15 @@ class TestExposure(unittest.TestCase):
         cls._conn = ctx.Exposure()
         
     def tearDown(self):
-        time.sleep(3)
+        time.sleep(1)
+
+    def read_browser_return(self,file):
+        with open(f"browser_api_returns/exposure/{file}.json",'rb') as f:
+            info = pd.DataFrame(json.load(f)).fillna(pd.NA).replace("-",pd.NA)
+        info = info.fillna(pd.NA).replace("-",pd.NA).replace("",pd.NA).copy()
+        info.sort_index(axis=1,inplace=True)
+        info.sort_values(by=info.columns.tolist(),inplace=True)
+        return info
 
     def test_connection(self):
         self.assertEqual(self._conn.host, "https://api-ccte.epa.gov/")
@@ -18,47 +29,141 @@ class TestExposure(unittest.TestCase):
         self.assertIsNotNone(self._conn.headers['x-api-key'])
         self.assertEqual(self._conn.kind,'exposure')
         
-    def test_search_chem_fc(self):
-        word = "DTXSID7020182"
-        doc_types = ['Chemical presence list','Composition','Function']
-        test = self._conn.search(by="fc",word=word)
-        self.assertTrue(all([i['dtxsid']==word for i in test]))
-        self.assertTrue(all([i['datatype'] in doc_types for i in test]))
-        self.assertTrue(all([isinstance(i['reportedfunction'],str) for i in test]))
+    def test_search_cpdat_by_fc(self):
+        dtxsid = "DTXSID7020182"
+        test = self._conn.search_cpdat(vocab_name="fc",dtxsid=dtxsid)
+        test.sort_index(axis=1,inplace=True)
+        test.sort_values(by=test.columns.tolist(),inplace=True)
+        info = self.read_browser_return(file="search_cpdat_by_fc")
+        assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
 
-    def test_search_chem_qsur(self):
-        keys = ['harmonizedFunctionalUse','probability']
-        test = self._conn.search(by='qsur',word='DTXSID7020182')
-        self.assertTrue(all([k in keys for i in test for k in i.keys()]))
-        self.assertTrue(all([isinstance(i[keys[0]],str) for i in test]))
-        self.assertTrue(all([isinstance(i[keys[1]],float) for i in test]))
+    def test_search_batch_cpdat_by_fc(self):
+        dtxsids = ['DTXSID2021868','DTXSID7021360']
+        test = self._conn.search_cpdat(vocab_name='fc',dtxsid=dtxsids)
+        test.sort_index(axis=1,inplace=True)
+        test.sort_values(by=test.columns.tolist(),inplace=True)
+        info = self.read_browser_return(file="search_batch_cpdat_by_fc")
+        assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
 
-    def test_search_chem_puc(self):
-        keys = ['gencat','rawmincomp','rawmaxcomp','rawcentralcomp']
-        test = self._conn.search(by='puc',word='DTXSID7020182')
-        self.assertTrue(all(any([isinstance(i[k],str) for k in keys]) for i in test))
+    def test_search_cpdat_by_puc(self):
+        dtxsid = "DTXSID7020182"
+        test = self._conn.search_cpdat(vocab_name="puc",dtxsid=dtxsid)
+        test.sort_index(axis=1,inplace=True)
+        test.sort_values(by=test.columns.tolist(),inplace=True)
+        info = self.read_browser_return(file="search_cpdat_by_puc")
+        assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
 
-    def test_search_chem_lpk(self):
-        test = self._conn.search(by='lpk', word='DTXSID7020182')
-        ## There's some weird values returned here, I don't know what to test
-        ## other than to ensure that you get a list of dictionaries back
-        self.assertTrue(isinstance(test,list))
-        self.assertTrue([isinstance(i,dict) for i in test])
+    def test_search_batch_cpdat_by_puc(self):
+        dtxsids = ['DTXSID2021868','DTXSID7021360']
+        test = self._conn.search_cpdat(vocab_name='puc',dtxsid=dtxsids)
+        test.sort_index(axis=1,inplace=True)
+        test.sort_values(by=test.columns.tolist(),inplace=True)
+        info = self.read_browser_return(file="search_batch_cpdat_by_puc")
+        assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+
+    def test_search_cpdat_by_lpk(self):
+        dtxsid = "DTXSID7020182"
+        test = self._conn.search_cpdat(vocab_name="lpk",dtxsid=dtxsid)
+        test.sort_index(axis=1,inplace=True)
+        test.sort_values(by=test.columns.tolist(),inplace=True)
+        info = self.read_browser_return(file="search_cpdat_by_lpk")
+        assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+
+    def test_search_batch_cpdat_by_lpk(self):
+        dtxsids = ['DTXSID2021868','DTXSID7021360']
+        test = self._conn.search_cpdat(vocab_name='lpk',dtxsid=dtxsids)
+        test.sort_index(axis=1,inplace=True)
+        test.sort_values(by=test.columns.tolist(),inplace=True)
+        info = self.read_browser_return(file="search_batch_cpdat_by_lpk")
+        assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+
+    def test_search_qsurs(self):
+        dtxsid = "DTXSID7020182"
+        test = self._conn.search_qsurs(dtxsid=dtxsid)
+        test.sort_index(axis=1,inplace=True)
+        test.sort_values(by=test.columns.tolist(),inplace=True)
+        info = self.read_browser_return(file="search_qsurs")
+        assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+
+    def test_search_batch_qsurs(self):
+        dtxsids = ['DTXSID2021868','DTXSID7021360']
+        test = self._conn.search_qsurs(dtxsid=dtxsids)
+        test.sort_index(axis=1,inplace=True)
+        test.sort_values(by=test.columns.tolist(),inplace=True)
+        info = self.read_browser_return(file="search_batch_qsurs")
+        assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+
+    def test_search_httk(self):
+        dtxsid = "DTXSID7020182"
+        test = self._conn.search_httk(dtxsid=dtxsid)
+        test.sort_index(axis=1,inplace=True)
+        test.sort_values(by=test.columns.tolist(),inplace=True)
+        info = self.read_browser_return(file="search_httk")
+        assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+
+    def test_search_batch_httk(self):
+        dtxsids = ['DTXSID4020458','DTXSID7020182']
+        test = self._conn.search_httk(dtxsid=dtxsids)
+        test.sort_index(axis=1,inplace=True)
+        test.sort_values(by=test.columns.tolist(),inplace=True)
+        info = self.read_browser_return(file="search_batch_httk")
+        assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+
+    def test_search_exposures_pathways(self):
+        dtxsid = "DTXSID7020182"
+        test = self._conn.search_exposures(by='pathways',dtxsid=dtxsid)
+        test.sort_index(axis=1,inplace=True)
+        test.sort_values(by=test.columns.tolist(),inplace=True)
+        info = self.read_browser_return(file="search_exposures_pathways")
+        assert_frame_equal(test.reset_index(drop=True),
+                           info.reset_index(drop=True),
+                           check_dtype=False)
+
+    def test_search_batch_exposures_pathways(self):
+        dtxsids = ['DTXSID2021868','DTXSID7021360']
+        test = self._conn.search_exposures(by='pathways',dtxsid=dtxsids)
+        test.sort_index(axis=1,inplace=True)
+        test.sort_values(by=test.columns.tolist(),inplace=True)
+        info = self.read_browser_return(file="search_batch_exposures_pathways")
+        assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+
+    def test_search_exposures_seem(self):
+        dtxsid = "DTXSID7020182"
+        test = self._conn.search_exposures(by='seem',dtxsid=dtxsid)
+        test.sort_index(axis=1,inplace=True)
+        test.sort_values(by=test.columns.tolist(),inplace=True)
+        info = self.read_browser_return(file="search_batch_exposures_pathways")
+        info = self.read_browser_return(file="search_exposures_seem")
+        assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+
+    def test_search_batch_exposures_seem(self):
+        dtxsids = ['DTXSID2021868','DTXSID7021360']
+        test = self._conn.search_exposures(by='seem',dtxsid=dtxsids)
+        test.sort_index(axis=1,inplace=True)
+        test.sort_values(by=test.columns.tolist(),inplace=True)
+        info = self.read_browser_return(file="search_batch_exposures_seem")
+        assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
 
     def test_fc_vocabulary(self):
-        keys = ['id','title','description']
-        test = self._conn.vocabulary(by='fc')
-        self.assertTrue(all([k in keys for i in test for k in i.keys()]))
+        test = self._conn.get_cpdat_vocabulary(vocab_name='fc')
+        test.sort_index(axis=1,inplace=True)
+        test.sort_values(by=test.columns.tolist(),inplace=True)
+        info = self.read_browser_return(file="fc_vocabulary")
+        assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
 
     def test_puc_vocabulary(self):
-        keys = ['id','kindName','genCat','prodfam','prodtype','definition']
-        test = self._conn.vocabulary(by='puc')
-        self.assertTrue(all([k in keys for i in test for k in i.keys()]))
+        test = self._conn.get_cpdat_vocabulary(vocab_name='puc')
+        test.sort_index(axis=1,inplace=True)
+        test.sort_values(by=test.columns.tolist(),inplace=True)
+        info = self.read_browser_return(file="puc_vocabulary")
+        assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
 
     def test_lpk_vocabulary(self):
-        keys = ['id','tagName','tagDefinition','kindName']
-        test = self._conn.vocabulary(by='lpk')
-        self.assertTrue(all([k in keys for i in test for k in i.keys()]))
+        test = self._conn.get_cpdat_vocabulary(vocab_name='lpk')
+        test.sort_index(axis=1,inplace=True)
+        test.sort_values(by=test.columns.tolist(),inplace=True)
+        info = self.read_browser_return(file="lpk_vocabulary")
+        assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
 
 
 if __name__ == "__main__":

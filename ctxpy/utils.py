@@ -4,10 +4,23 @@ from typing import Optional, Union
 from dotenv import dotenv_values, set_key
 
 
-def chunker(seq, size):
+def chunker(listlike, size):
     """
+    Iterator that provides shorthand for iterating over a sequence on chunck (of length
+    size) at a time.
+    
+    Parameters
+    ----------
+    listlike: list-like
+        a list-like object that needs to be divided into smaller chuncks
+    size: integer
+        the number of items that should be in each chunk
+    
+    Returns
+    -------
+    generator
     """
-    return (seq[pos : pos + size] for pos in range(0, len(seq), size))
+    return (listlike[pos : pos + size] for pos in range(0, len(listlike), size))
 
 
 def flatten(lofl:list):
@@ -29,7 +42,7 @@ def flatten(lofl:list):
     >>> flatten(l)
     ... [1,2,3,0,9,8]
     """
-    return [item for l in lofl for item in l]
+    return [item for lst in lofl for item in lst]
 
 
 def write_env(data:dict, env_file: Optional[Union[str, Path]] = None):
