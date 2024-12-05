@@ -57,69 +57,95 @@ class Hazard(CTXConnection):
         """
         Search for hazard information for a single chemical.
 
-        Search for 1) a single chemical by chemical identifiers by the
-        beinging of the identifier, the exact identifier, or a sub-string
-        of the identifier or 2) a batch of chemical identifiers. Chemical
-        identifiers can be chemical names, CAS-RNs, DTXSID, etc. that are used
-        to distinguish one chemical substance from another.
+        Retrieve a specific sub-domain of hazard information (from EPA's ToxValDB and 
+        other hazard resources) for a DTXSID identifier. If only the chemical name or 
+        CASRN is known, then the ctxpy.Chemical class can be used to search for DTXSIDs.
 
 
         Parameters
         ----------
         by : string
-            The type of search method to use. Options are "equals", "contains",
-            "starts-with", or "batch".
+            The type of search method to use. Options are "all", "human", "eco", 
+            "skin-eye", "cancer", or "genetox".
 
-        word : string or list-like
-            If string, the single chemical identifer (or part of the identifier)
-            to search for. If list-list, a list or other iterable of identifiers to 
-            search for.
+        dtxsid : string
+            A valid DSSTox Substance Identifier (DTXSID)
+            
+        summary: bool
+            If `by` is genetox, this determines whether summary or detailed information 
+            about a chemical's genetic toxicity is returned.
 
         Return
         ------
-        list
-            a list of dicts with each dict being a match to supplied a chemical
-            identifier
-
-        Notes
-        -----
-        Batch searching only allows for 200 items in a list. For lists of more
-        than 200 items, the search will be broken into 200-item chunks with a 3
-        second wait between searches. These searches may take longer than
-        expected due to this limitation.
-
-        Batch looks only for exact string matches to a chemical identifier.
+        pandas DataFrame
+            contains requested hazard data from specified API endpoints
 
 
         Examples
         --------
 
-        Search for a chemical by name:
-
+        Search for all ToxValDB information for a chemical:
         >>> haz.search(by='all',dtxsid='DTXSID7021360')
 
-        
+               id  year       source         dtxsid  ... humanEcoNt
+        0  718311  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
+        1  718313  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
+        2  718131  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
+        3  718198  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
+        4  717897  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
 
+        Search for a chemical's ToxValDB human information:
         >>> haz.search(by='human',dtxsid='DTXSID7021360')
 
-        
+               id  year           source         dtxsid exposureRoute  ...    humanEcoNt
+        0  374062  <NA>       Alaska DEC  DTXSID7021360        dermal  ...  human health
+        1  378344  <NA>       Alaska DEC  DTXSID7021360    inhalation  ...  human health
+        2  377820  <NA>       Alaska DEC  DTXSID7021360    inhalation  ...  human health
+        3  374756  <NA>       Alaska DEC  DTXSID7021360          oral  ...  human health
+        4  251049  2017  ATSDR MRLs 2020  DTXSID7021360    inhalation  ...  human health
 
+        Search for a chemical's ToxValDB ecological information:
         >>> haz.search(by='eco',dtxsid='DTXSID7021360')
 
-        
+               id  year       source         dtxsid  ... humanEcoNt
+        0  718131  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
+        1  718313  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
+        2  718311  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
+        3  718198  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
+        4  717897  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
 
+        Search for a chemical's skin/eye sensitization information :
         >>> haz.search(by='skin-eye',dtxsid='DTXSID7021360')
 
-        
+              id  year            source                 endpoint  ...            strain
+        0  24214    -1             Japan       Skin Sensitization  ...              <NA>
+        1  24213    -1             Japan          Skin Irritation  ...              <NA>
+        2  22350    -1            Canada          Skin Irritation  ...              <NA>
+        3    518    -1          ECHA CLP          Skin Irritation  ...              <NA>
+        4  91325  1982  ECHA eChemPortal  eye irritation: in vivo  ... New Zealand White
 
-        >>> haz.search(by='cancer',dtxsid='DTXSID7021360')
+        Search for a chemical's cancer hazard information:
+        >>> haz.search(by='cancer',dtxsid='DTXSID701015778')
 
-        
+             id   source  ...           dtxsid exposureRoute
+        0  2062     IARC  ...  DTXSID701015778          <NA>
+        1  2063  NTP RoC  ...  DTXSID701015778          <NA>
 
+        Search for a chemical's summary genetic toxicity data:
         >>> haz.search(by='genetox',dtxsid='DTXSID7021360')
 
-        
+               id         dtxsid  reportsPositive ...  ames micronucleus
+        0  518845  DTXSID7021360                2 ...  <NA>     positive
 
+        Search for a chemicals's detailed genetic toxicity data:
+        >>> haz.search(by='genetox',dtxsid='DTXSID7021360',summary=False)
+
+                id    year       source         dtxsid  ...  strain
+        0  1186322  1981.0  eChemPortal  DTXSID7021360  ...    <NA>
+        1  1186321  1983.0  eChemPortal  DTXSID7021360  ...    <NA>
+        2  1186323  1978.0  eChemPortal  DTXSID7021360  ...    <NA>
+        3  1186324  1981.0  eChemPortal  DTXSID7021360  ...    CD-1
+        4  1186325     NaN          NTP  DTXSID7021360  ...    <NA>
         """
 
         options = {
@@ -168,55 +194,91 @@ class Hazard(CTXConnection):
         Parameters
         ----------
         by : string
-            The type of search method to use. Options are "equals", "contains",
-            "starts-with", or "batch".
+            The type of search method to use. Options are "all", "human", "eco", 
+            "skin-eye", "cancer", or "genetox".
 
-        dtxsid : list-like
-            A list or other iterable of DTXSIDs to search for.
+        dtxsid : string
+            A valid DSSTox Substance Identifier (DTXSID)
+            
+        summary: bool
+            If `by` is genetox, this determines whether summary or detailed information 
+            about a chemical's genetic toxicity is returned.
 
         Return
         ------
-        list
-            a list of dicts with each dict being a match to supplied a chemical
-            identifier
-
-        Notes
-        -----
-        Batch searching only allows for 200 items in a list. For lists of more
-        than 200 items, the search will be broken into 200-item chunks with a 3
-        second wait between searches. These searches may take longer than
-        expected due to this limitation.
+        pandas DataFrame
+            contains requested hazard data from specified API endpoints
 
 
         Examples
         --------
 
-        Search for a chemical by name:
+        Search for all ToxValDB information for chemicals:
+        >>> haz.batch_search(by='all',dtxsid=["DTXSID7021360","DTXSID2021868"])
 
-        >>> haz.batch_search(by='all',dtxsid='DTXSID7021360')
+               id  year       source         dtxsid  ... humanEcoNt
+        0  718311  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
+        1  718313  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
+        2  718131  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
+        3  718198  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
+        4  717897  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
 
-        
+        Search for chemicals' ToxValDB human information:
+        >>> haz.batch_search(by='human',dtxsid=["DTXSID7021360","DTXSID2021868"])
 
-        >>> haz.batch_search(by='human',dtxsid='DTXSID7021360')
+               id  year           source         dtxsid exposureRoute  ...    humanEcoNt
+        0  374062  <NA>       Alaska DEC  DTXSID7021360        dermal  ...  human health
+        1  378344  <NA>       Alaska DEC  DTXSID7021360    inhalation  ...  human health
+        2  377820  <NA>       Alaska DEC  DTXSID7021360    inhalation  ...  human health
+        3  374756  <NA>       Alaska DEC  DTXSID7021360          oral  ...  human health
+        4  251049  2017  ATSDR MRLs 2020  DTXSID7021360    inhalation  ...  human health
 
-        
+        Search for chemicals' ToxValDB ecological information:
+        >>> haz.batch_search(by='eco',dtxsid=["DTXSID7021360","DTXSID2021868"])
 
-        >>> haz.batch_search(by='eco',dtxsid='DTXSID7021360')
+               id  year       source         dtxsid  ... humanEcoNt
+        0  718131  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
+        1  718313  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
+        2  718311  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
+        3  718198  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
+        4  717897  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
 
-        
+        Search for chemicals' skin/eye sensitization information :
+        >>> haz.batch_search(by='skin-eye',dtxsid=["DTXSID7021360","DTXSID2021868"])
 
-        >>> haz.batch_search(by='skin-eye',dtxsid='DTXSID7021360')
+              id  year            source                 endpoint  ...            strain
+        0  24214    -1             Japan       Skin Sensitization  ...              <NA>
+        1  24213    -1             Japan          Skin Irritation  ...              <NA>
+        2  22350    -1            Canada          Skin Irritation  ...              <NA>
+        3    518    -1          ECHA CLP          Skin Irritation  ...              <NA>
+        4  91325  1982  ECHA eChemPortal  eye irritation: in vivo  ... New Zealand White
 
-        
+        Search for chemicals' cancer hazard information:
+        >>> haz.batch_search(by='cancer',dtxsid=["DTXSID701015778","DTXSID3039242"])
 
-        >>> haz.batch_search(by='cancer',dtxsid='DTXSID7021360')
+             id         source  ...         dtxsid exposureRoute
+        0  1142         CalEPA  ...  DTXSID3039242          <NA>
+        1  1143        EPA OPP  ...  DTXSID3039242          <NA>
+        2  1144  Health Canada  ...  DTXSID3039242    inhalation
+        3  1145  Health Canada  ...  DTXSID3039242  oral: gavage
+        4  1146           IARC  ...  DTXSID3039242          <NA>
 
-        
+        Search for a chemical's summary genetic toxicity data:
+        >>> haz.batch_search(by='genetox',dtxsid=["DTXSID7021360","DTXSID2021868"])
 
-        >>> haz.batch_search(by='genetox',dtxsid='DTXSID7021360')
+               id         dtxsid  reportsPositive  ...  ames micronucleus
+        0  518659  DTXSID2021868                0  ...  <NA>     negative
+        1  518845  DTXSID7021360                2  ...  <NA>     positive
 
-        
-
+        Search for a chemical's detailed genetic toxicity data:
+        >>> haz.batch_search(by='genetox',dtxsid=["DTXSID7021360","DTXSID2021868"],
+                             summary=False)
+                 id    year       source         dtxsid  ...  assayResult       strain
+        0   1184853  1985.0  eChemPortal  DTXSID2021868  ...     negative         <NA>
+        1   1184843  1981.0  eChemPortal  DTXSID2021868  ...     negative         <NA>
+        2   1184846  1980.0  eChemPortal  DTXSID2021868  ...     negative         <NA>
+        3   1184845  1978.0  eChemPortal  DTXSID2021868  ...     negative         <NA>
+        4   1184842  1983.0  eChemPortal  DTXSID2021868  ...     negative         <NA>
         """
 
         options = {
