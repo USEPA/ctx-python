@@ -84,7 +84,11 @@ def get_toxprints(by,chemical):
         returned. If no ToxPrints could be found, then None is returned.
     """
     if by == 'smiles':
-        info = pd.to_numeric(HCDConnection().get(smiles=chemical))
+        info = HCDConnection().get(smiles=chemical)
+        print(f"In get_toxprints info is {type(info).__name__}")
+        if info is not None:
+            info = pd.to_numeric(info)
+
     elif by == 'dtxsid':
         info = Chemical().details(by=by,word=chemical)
         if info['descriptorStringTsv'] is not None:
@@ -98,6 +102,7 @@ def get_toxprints(by,chemical):
         else:
             info = None
 
+    print(f"At the end of  get_toxprints info is {type(info).__name__}")
     return info
 
 
@@ -126,16 +131,23 @@ def search_toxprints(chemical):
     """
     info = {}
     if is_list_like(chemical):
+        ## TODO: more robust handling of identifiers would make resolving identifiers in the
+        ## ChemicalConnection must easier.
         for c in chemical:
             identifier = chemical_identifier(c)
             # print(c,identifier)
             datum = get_toxprints(by=identifier,chemical=c)
+            print(datum)
+            
             if datum is None:
                 datum = pd.to_numeric([pd.NA]*729)
             info[(c,identifier)] = datum
     if isinstance(chemical,str):
         identifier = chemical_identifier(chemical)
-        info = {(chemical,identifier):get_toxprints(by=identifier,chemical=chemical)}
+        datum = get_toxprints(by=identifier,chemical=chemical)
+        if datum is None:
+            datum = pd.to_numeric([pd.NA]*729)
+        info = {(chemical,identifier):datum}
 
     info = pd.DataFrame(data=list(info.values()),
                         index=(pd.MultiIndex
