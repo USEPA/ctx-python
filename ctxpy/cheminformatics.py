@@ -85,7 +85,6 @@ def get_toxprints(by,chemical):
     """
     if by == 'smiles':
         info = HCDConnection().get(smiles=chemical)
-        print(f"In get_toxprints info is {type(info).__name__}")
         if info is not None:
             info = pd.to_numeric(info)
 
@@ -102,7 +101,6 @@ def get_toxprints(by,chemical):
         else:
             info = None
 
-    print(f"At the end of  get_toxprints info is {type(info).__name__}")
     return info
 
 
@@ -137,7 +135,6 @@ def search_toxprints(chemical):
             identifier = chemical_identifier(c)
             # print(c,identifier)
             datum = get_toxprints(by=identifier,chemical=c)
-            print(datum)
             
             if datum is None:
                 datum = pd.to_numeric([pd.NA]*729)

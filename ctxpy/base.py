@@ -196,5 +196,5 @@ class HCDConnection:
             info = None
         else:
             info = info['chemicals'][0]['descriptors']
-        print(f"In HCDConnection info is {type(info).__name__}")
+
         return info
