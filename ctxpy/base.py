@@ -192,6 +192,9 @@ class HCDConnection:
         except json.JSONDecodeError as e:
             ## TODO: make this a more informative error message
             raise SystemError(e)
+        if 'descriptors' not in info['chemicals'][0].keys():
+            info = None
+        else:
+            info = info['chemicals'][0]['descriptors']
 
-        info = info['chemicals'][0]['descriptors']
         return info
