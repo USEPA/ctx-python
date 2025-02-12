@@ -29,7 +29,7 @@ def toxprints():
 
     """
 
-    with open(resources.path("ctxpy.data", "toxprints.txt"), "r") as f:
+    with open(resources.files("ctxpy.data")/"toxprints.txt", "r") as f:
         toxps = f.read().splitlines()
 
     return toxps
