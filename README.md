@@ -18,19 +18,19 @@ Once an API key is obtained, `ctx-python` offers two options for passing the key
 
 1. Supply the key at the point of instantiatation for each domain. This will look something like:
 
-```{python}
+```python
 import ctxpy as ctx
 
 chem = ctx.Chemical(x_api_key='648a3d70')
 ```
 
 2. `ctx-python` comes with a command-line tool that will utilize the `.env` file that will store the key. If no key is supplied at instantiation, `ctx-python` will automatically attempt to load this file and use a key stored there.
-```{bash}
+```bash
 [user@host~]$ ctx_init --x-api-key 648a3d70
 ```
 This will result in the .env file having three new environment variables added to the file: `ctx_api_host`, `ctx_api_accept`, `ctx_x_api_key`.
 
-```{python}
+```python
 import ctxpy as ctx
 
 chem = ctx.Chemical()
@@ -54,7 +54,7 @@ The `Chemical` class provides capabilities to:
 - retrieve details about a chemical from a DTXSID (single chemical or batch search) or DTXCID (single chemical only)
 - search for chemicals that match features common in Mass Spectrometry (i.e., a range of molecular mass, chemical formula, or by DTXCID)
 
-```{python}
+```python
 import ctx
 
 # Start an instance of the Chemical class
@@ -82,7 +82,7 @@ chem.msready(by='mass', start=200.9, end=200.93)
 ### Cheminformatics
 ToxPrint chemotypes are useful descriptors for Quantitative Stucture-Activity/Property Relationships (QSAR/QSPR). They can now be accessed from both EPA's CTX APIs and EPA's HCD APIs via `ctx-python`.
 
-```{python}
+```python
 import ctxpy as ctx
 
 dtxcid = 'DTXCID701805'
@@ -104,7 +104,7 @@ ctx.search_toxprints(chemical=[dtxcid,dtxsid,smiles])
 The `Exposure` class provides capabilities to search EPA's Chemical and Products Database (CPDat), High-throughput Toxicokinetics data (httk), and return predictions from its Quantitative Structure-Use Relationship (QSUR) models and from Systematic Empirical Evaluation of Models (SEEM) framework for exposure predictions.
 
 
-```{python}
+```python
 import ctx
 
 # Start an instance of the Exposure class
@@ -135,7 +135,7 @@ expo.search_exposures(by='seemm',dtxsid='DTXSID7020182')
 
 With all search methods in the Exposure class, it is possible to provide a list of DTXSIDs and receive back a pandas DataFrame for all submitted chemicals in the list.
 
-```{python}
+```python
 expo.search_qsurs(dtxsid=['DTXSID7020182','DTXSID3021805'])
 ```
 
@@ -143,7 +143,7 @@ expo.search_qsurs(dtxsid=['DTXSID7020182','DTXSID3021805'])
 ## Hazard
 The `Hazard` class provides capabilities to access all hazard endpoints from the CTX APIs. These endpoints provide access to EPA's Toxicity Values Database (ToxValDB) and other data sources used by EPA's Office of Research and Development.
 
-```{python}
+```python
 import ctxpy as ctx
 
 haz = ctx.Hazard()
@@ -171,7 +171,7 @@ haz.search(by='genetox',dtxsid='DTXSID7020182',summary=False)
 ```
 
 Explicit batch searching is also available for the `Hazard` class.
-```{python}
+```python
 haz.batch_search(by='human',dtxsid=['DTXSID7020182','DTXSID3021805'])
 ```
 
