@@ -1,11 +1,11 @@
-[tool.poetry]
+[project]
 name = "ctx-python"
-version = "0.0.1-alpha.6"
+version = "0.0.1a7"
 description = "A Python API client for US EPA's Computational Toxicology and Exposure APIs."
-authors = ["Katherine Phillips <phillips.katherine@epa.gov>"]
+authors = [{ name = "Katherine Phillips", email = "phillips.katherine@epa.gov" }]
+requires-python = "~=3.10"
 readme = "README.md"
 license = "GPL-3.0-or-later"
-packages = [{include = "ctxpy"}]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Intended Audience :: Science/Research",
@@ -13,22 +13,28 @@ classifiers = [
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3.10",
-    "Topic :: Scientific/Engineering :: Chemistry"
+    "Topic :: Scientific/Engineering :: Chemistry",
 ]
-repository="https://github.com/USEPA/ctx-python"
+dependencies = [
+    "pandas>=2.1.4,<3",
+    "requests>=2.31.0,<3",
+    "python-dotenv>=1.0.1,<2",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-pandas = "^2.1.4"
-requests = "^2.31.0"
-python-dotenv = "^1.0.1"
+[project.urls]
+Repository = "https://github.com/USEPA/ctx-python"
 
+[project.scripts]
+ctx_init = "ctxpy.command_line:main"
+
+[tool.hatch.build.targets.sdist]
+include = ["ctxpy"]
+
+[tool.hatch.build.targets.wheel]
+include = ["ctxpy"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.scripts]
-ctx_init = "ctxpy.command_line:main"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.ruff]
