@@ -3,7 +3,7 @@ name = "ctx-python"
 version = "0.0.1a7"
 description = "A Python API client for US EPA's Computational Toxicology and Exposure APIs."
 authors = [{ name = "Katherine Phillips", email = "phillips.katherine@epa.gov" }]
-requires-python = "~=3.10"
+requires-python = ">=3.10, <4"
 readme = "README.md"
 license = "GPL-3.0-or-later"
 classifiers = [
@@ -36,5 +36,10 @@ include = ["ctxpy"]
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "ipython>=8.37.0",
+]
 
 [tool.ruff]

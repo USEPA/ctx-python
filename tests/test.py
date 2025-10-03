@@ -9,7 +9,8 @@ loader = unittest.TestLoader()
 suite = unittest.TestSuite([loader.loadTestsFromTestCase(TestChemical),
                             loader.loadTestsFromTestCase(TestCheminformatics),
                             loader.loadTestsFromTestCase(TestExposure),
-                            loader.loadTestsFromTestCase(TestHazard)])
+                            loader.loadTestsFromTestCase(TestHazard)
+                            ])
 runner = unittest.TextTestRunner()
 results = runner.run(suite)
 
