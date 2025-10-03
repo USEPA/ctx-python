@@ -11,7 +11,7 @@ class TestChemical(unittest.TestCase):
         time.sleep(1)
 
     def test_connection(self):
-        self.assertEqual(self._conn.host, "https://api-ccte.epa.gov/")
+        self.assertEqual(self._conn.host, "https://comptox.epa.gov/ctx-api/")
         self.assertEqual(self._conn.headers["accept"], "application/json")
         self.assertEqual(self._conn.kind, "chemical/list")
         self.assertIsNotNone(self._conn.headers["x-api-key"])

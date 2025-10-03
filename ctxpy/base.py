@@ -43,7 +43,7 @@ class CTXConnection:
         env_path: Optional[Union[str, Path]] = None,
     ):
         if isinstance(x_api_key, str):
-            self.host = "https://api-ccte.epa.gov/"
+            self.host = "https://comptox.epa.gov/ctx-api/"
             self.headers = {"accept": "application/json", "x-api-key": x_api_key}
 
         else:

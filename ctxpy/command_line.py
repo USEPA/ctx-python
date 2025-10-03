@@ -3,8 +3,6 @@ import sys
 from pathlib import Path
 from typing import Optional, Union
 
-from dotenv import unset_key
-
 from .utils import read_env, write_env
 
 ## TODO: CLI tests
@@ -24,7 +22,7 @@ def init(ctx_api_x_api_key: str, override: bool=False, env_file: Optional[Union[
 
     """
     data = {
-        "ctx_api_host": "https://api-ccte.epa.gov/",
+        "ctx_api_host": "https://comptox.epa.gov/ctx-api/",
         "ctx_api_accept": "application/json",
         "ctx_api_x_api_key": ctx_api_x_api_key,
     }

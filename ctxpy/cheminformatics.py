@@ -107,7 +107,7 @@ def get_toxprints(by,chemical):
 
 def search_toxprints(chemical):
     """
-    Provide ToxPrint chemoctypes for one chemical identifier or a list-like of multiple 
+    Provide ToxPrint chemotypes for one chemical identifier or a list-like of multiple 
     chemical identifiers.
     
     Chemical Identifiers may be DTXSIDs, DTXCIDs, or SMILES strings. If a list is
