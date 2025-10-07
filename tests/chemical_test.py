@@ -1,254 +1,362 @@
 import unittest
-import time
-import ctxpy as ctx
-
+from unittest.mock import patch
+import ctxpy
 
 class TestChemical(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls._conn = ctx.Chemical()
 
-    def tearDown(self):
-        time.sleep(1)
 
-    def test_connection(self):
-        self.assertEqual(self._conn.host, "https://comptox.epa.gov/ctx-api/")
-        self.assertEqual(self._conn.headers["accept"], "application/json")
-        self.assertEqual(self._conn.kind, "chemical")
-        self.assertIsNotNone(self._conn.headers["x-api-key"])
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_search_equals(self, mocker):
+        # Mock the response from the get method
+        mocker.return_value = [{'dtxsid': 'DTXSID7021360',
+                                'preferredName': 'Toluene'}]
 
-    def test_search_equals(self):
-        test_search = self._conn.search(by="equals", word="toluene")
+        chem = ctxpy.Chemical()
+        result = chem.search(by='equals', word='toluene')
 
-        self.assertEqual(len(test_search), 1)
-        self.assertEqual(
-            self._conn.search(by="equals", word="toluene")[0]["dtxsid"], "DTXSID7021360"
-        )
-        self.assertEqual(
-            self._conn.search(by="equals", word="108-88-3")[0]["dtxsid"],
-            "DTXSID7021360",
-        )
+        # Assertions to verify the behavior
+        mocker.assert_called_once_with(suffix='chemical/search/equal/toluene')
+        self.assertEqual(result, [{'dtxsid': 'DTXSID7021360',
+                                   'preferredName': 'Toluene'}])
 
-    def test_search_contains(self):
-        test_search = self._conn.search(by="contains", word="8-88-3")
 
-        self.assertTrue(any("108-88-3" in chem.values() for chem in test_search))
-        self.assertTrue(any("Toluene" in chem.values() for chem in test_search))
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_search_starts_with(self, mocker):
+        # Mock the response from the get method
+        mocker.return_value = [{'dtxsid': 'DTXSID7021360', 'preferredName': 'Toluene'}]
 
-    def test_search_starts_with(self):
-        test_search = self._conn.search(by="starts-with", word="tolu")
+        chem = ctxpy.Chemical()
+        result = chem.search(by='starts-with', word='toluene')
 
-        self.assertTrue(any("108-88-3" in chem.values() for chem in test_search))
-        self.assertTrue(any("Toluene" in chem.values() for chem in test_search))
+        # Assertions to verify the behavior
+        mocker.assert_called_once_with(suffix='chemical/search/start-with/toluene')
+        self.assertEqual(result, [{'dtxsid': 'DTXSID7021360',
+                                   'preferredName': 'Toluene'}])
 
-    def test_search_batch(self):
-        chemicals = {
-            "toluene": "DTXSID7021360",
-            "p-xylene": "DTXSID2021868",
-            "o-xylene": "DTXSID3021807",
-            "108-38-3": "DTXSID6026298",
-        }
-        test_search = self._conn.search(by="batch", word=chemicals)
-        self.assertEqual(len(test_search), 4)
 
-        ## BUG: the API does something with the search string such that the
-        # `searchValue` is not the same as the string I feed it -- need to figure out
-        # what this is, so that I can check it. I could then use
-        # `self.assertCountEqual([i['searchValue'] for i in test_search],chemicals)`
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_search_contains(self, mocker):
+        hit = [{'dtxsid': 'DTXSID001009823',
+                'preferredName': 'Balsams, tolu'},
+               {'dtxsid': 'DTXSID00101006',
+                'preferredName': ('Soybean oil, polymer with dipentaerythritol, '
+                                  'pentaerythritol, phthalic anhydride, styrene, '
+                                  'tung oil and vinyltoluene')},
+               {'dtxsid': 'DTXSID001014729',
+                'preferredName': 'Diethyltoluamide'},
+               {'dtxsid': 'DTXSID00101829',
+                'preferredName': ('Fatty acids, tall-oil, polymers with glycerol, '
+                                  'maleic anhydride, phthalic anhydride, soybean oil '
+                                  'and vinyltoluene')}]
+        # Mock the response from the get method
+        mocker.return_value = hit
 
-        for chem in test_search:
-            sv = chem["searchValue"].lower().replace(" ", "-")
-            self.assertEqual(chem["dtxsid"].strip(), chemicals[sv])
+        chem = ctxpy.Chemical()
+        result = chem.search(by='contains', word='toluene')
 
-    def test_details_dtxsid_default(self):
-        test_search = self._conn.details(by="dtxsid", word="DTXSID7021360")
-        self.assertTrue(len(test_search), 73)
-        self.assertEqual(
-            test_search["inchiString"].strip(),
-            "InChI=1S/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3",
-        )
+        # Assertions to verify the behavior
+        mocker.assert_called_once_with(suffix='chemical/search/contain/toluene')
+        self.assertEqual(result, hit)
 
-    def test_details_dtxcid_default(self):
-        test_search = self._conn.details(by="dtxcid", word="DTXCID501360")
-        self.assertTrue(len(test_search), 73)
-        self.assertEqual(
-            test_search["inchiString"].strip(),
-            "InChI=1S/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3",
-        )
+    @patch('ctxpy.base.CTXConnection.batch')
+    def test_search_batch_greater_than_batch_size(self, mocker):
+        hit = [{'dtxsid': 'DTXSID7021360',
+                'preferredName': 'Toluene'},
+               {'dtxsid': 'DTXSID001009823',
+                'preferredName': 'Balsams, tolu'}]
+        # Mock the response from the get method
+        mocker.return_value = hit
 
-    def test_details_batch_default(self):
-        chemicals = {
-            "DTXSID7021360": "InChI=1S/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3",
-            "DTXSID2021868": "InChI=1S/C8H10/c1-7-3-5-8(2)6-4-7/h3-6H,1-2H3",
-            "DTXSID3021807": "InChI=1S/C8H10/c1-7-5-3-4-6-8(7)2/h3-6H,1-2H3",
-            "DTXSID6026298": "InChI=1S/C8H10/c1-7-4-3-5-8(2)6-7/h3-6H,1-2H3",
-        }
-        test_search = self._conn.details(by="batch", word=list(chemicals.keys()))
-        self.assertTrue(len(test_search), 4)
+        chem = ctxpy.Chemical()
+        result = chem.search(by='batch',
+                             word=['DTXSID7021360', 'DTXSID001009823'],
+                             batch_size=1)
 
-        for chem in test_search:
-            self.assertEqual(chem["inchiString"].strip(), chemicals[chem["dtxsid"]])
+        # Assertions to verify the behavior
+        mocker.assert_called_once_with(suffix='chemical/search/equal/',
+                                       word=['DTXSID7021360',
+                                             'DTXSID001009823'],
+                                       batch_size=1,
+                                       bracketed=False)
+        self.assertEqual(result, hit)
 
-    def test_details_dtxsid_all(self):
-        test_search = self._conn.details(
-            by="dtxsid", word="DTXSID7021360", subset="all"
-        )
-        self.assertDictEqual(
-            test_search, self._conn.details(by="dtxsid", word="DTXSID7021360")
-        )
 
-    def test_details_dtxcid_all(self):
-        test_search = self._conn.details(by="dtxcid", word="DTXCID501360", subset="all")
-        self.assertDictEqual(
-            test_search, self._conn.details(by="dtxcid", word="DTXCID501360")
-        )
+    @patch('ctxpy.base.CTXConnection.batch')
+    def test_search_batch_less_than_batch_size(self, mocker):
+        hit = [{'dtxsid': 'DTXSID7021360',
+                'preferredName': 'Toluene'},
+               {'dtxsid': 'DTXSID001009823',
+                'preferredName': 'Balsams, tolu'}]
+        # Mock the response from the get method
+        mocker.return_value = hit
 
-    def test_details_batch_all(self):
-        chemicals = {
-            "DTXSID7021360": "InChI=1S/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3",
-            "DTXSID2021868": "InChI=1S/C8H10/c1-7-3-5-8(2)6-4-7/h3-6H,1-2H3",
-            "DTXSID3021807": "InChI=1S/C8H10/c1-7-5-3-4-6-8(7)2/h3-6H,1-2H3",
-            "DTXSID6026298": "InChI=1S/C8H10/c1-7-4-3-5-8(2)6-7/h3-6H,1-2H3",
-        }
-        test_search = self._conn.details(
-            by="batch", word=list(chemicals.keys()), subset="all"
-        )
-        self.assertTrue(len(test_search), 4)
+        chem = ctxpy.Chemical()
+        result = chem.search(by='batch',
+                             word=['DTXSID7021360',
+                                   'DTXSID001009823'])
 
-        for chem in test_search:
-            self.assertEqual(chem["inchiString"].strip(), chemicals[chem["dtxsid"]])
+        # Assertions to verify the behavior
+        mocker.assert_called_once_with(suffix='chemical/search/equal/',
+                                       word=['DTXSID7021360','DTXSID001009823'],
+                                       batch_size=200,
+                                       bracketed=False)
+        self.assertEqual(result, hit)
 
-    def test_details_dtxsid_details(self):
-        test_search = self._conn.details(
-            by="dtxsid", word="DTXSID7021360", subset="details"
-        )
-        self.assertTrue(len(test_search), 37)
-        self.assertEqual(
-            test_search["inchiString"].strip(),
-            "InChI=1S/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3",
-        )
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_details_dtxsid_no_subset(self,mocker):
+        hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
+               'dtxsid': 'DTXSID7021360',
+               'dtxcid': 'DTXCID501360',
+               'preferredName': 'Toluene'}
 
-    def test_details_dtxcid_details(self):
-        test_search = self._conn.details(
-            by="dtxcid", word="DTXCID501360", subset="details"
-        )
-        self.assertEqual(
-            test_search["inchiString"].strip(),
-            "InChI=1S/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3",
-        )
+        mocker.return_value = hit
 
-    def test_details_batch_details(self):
-        chemicals = {
-            "DTXSID7021360": "InChI=1S/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3",
-            "DTXSID2021868": "InChI=1S/C8H10/c1-7-3-5-8(2)6-4-7/h3-6H,1-2H3",
-            "DTXSID3021807": "InChI=1S/C8H10/c1-7-5-3-4-6-8(7)2/h3-6H,1-2H3",
-            "DTXSID6026298": "InChI=1S/C8H10/c1-7-4-3-5-8(2)6-7/h3-6H,1-2H3",
-        }
-        test_search = self._conn.details(
-            by="batch", word=list(chemicals.keys()), subset="details"
-        )
-        self.assertTrue(len(test_search), 4)
+        chem = ctxpy.Chemical()
+        result = chem.details(by='dtxsid',word='DTXSID7021360',subset=None)
 
-        for chem in test_search:
-            self.assertEqual(chem["inchiString"].strip(), chemicals[chem["dtxsid"]])
+        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxsid/DTXSID7021360')
+        self.assertEqual(result, hit)
 
-    def test_details_dtxsid_identifiers(self):
-        test_search = self._conn.details(
-            by="dtxsid", word="DTXSID7021360", subset="identifiers"
-        )
-        self.assertEqual(test_search["inchikey"].strip(), "YXFVVABEGXRONW-UHFFFAOYSA-N")
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_details_dtxsid_nta_subset(self,mocker):
+        hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
+               'dtxsid': 'DTXSID7021360',
+               'dtxcid': 'DTXCID501360',
+               'preferredName': 'Toluene'}
+        mocker.return_value = hit
 
-    def test_details_dtxcid_identifiers(self):
-        test_search = self._conn.details(
-            by="dtxcid", word="DTXCID501360", subset="identifiers"
-        )
-        self.assertEqual(test_search["inchikey"].strip(), "YXFVVABEGXRONW-UHFFFAOYSA-N")
+        chem = ctxpy.Chemical()
+        result = chem.details(by='dtxsid',word='DTXSID7021360',subset='nta')
 
-    def test_details_batch_identifiers(self):
-        chemicals = {
-            "DTXSID7021360": "YXFVVABEGXRONW-UHFFFAOYSA-N",
-            "DTXSID2021868": "URLKBWYHVLBVBO-UHFFFAOYSA-N",
-            "DTXSID3021807": "CTQNGGLPUBDAKN-UHFFFAOYSA-N",
-            "DTXSID6026298": "IVSZLXZYQVIEFR-UHFFFAOYSA-N",
-        }
-        test_search = self._conn.details(
-            by="batch", word=list(chemicals.keys()), subset="identifiers"
-        )
-        self.assertTrue(len(test_search), 4)
+        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxsid/DTXSID7021360?projection=ntatoolkit')
+        self.assertEqual(result, hit)
 
-        for chem in test_search:
-            self.assertEqual(chem["inchikey"].strip(), chemicals[chem["dtxsid"]])
+    @patch('ctxpy.base.CTXConnection.batch')
+    def test_details_dtxsid_batch_less_than_batch_size_no_subset(self,mocker):
+        hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
+               'dtxsid': 'DTXSID7021360',
+               'dtxcid': 'DTXCID501360',
+               'preferredName': 'Toluene'}
+        mocker.return_value = hit
 
-    def test_details_dtxsid_structures(self):
-        test_search = self._conn.details(
-            by="dtxsid", word="DTXSID7021360", subset="structures"
-        )
-        self.assertEqual(
-            test_search["inchiString"].strip(),
-            "InChI=1S/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3",
-        )
+        chem = ctxpy.Chemical()
+        result = chem.details(by='batch-dtxsid',
+                              word=['DTXSID7021360', 'DTXSID001009823'],
+                              subset=None)
 
-    def test_details_dtxcid_structures(self):
-        test_search = self._conn.details(
-            by="dtxcid", word="DTXCID501360", subset="structures"
-        )
-        self.assertEqual(
-            test_search["inchiString"].strip(),
-            "InChI=1S/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3",
-        )
+        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxsid/',
+                                       word=["DTXSID7021360","DTXSID001009823"],
+                                       batch_size=1000,
+                                       bracketed=True)
+        self.assertEqual(result, hit)
 
-    def test_details_batch_structures(self):
-        chemicals = {
-            "DTXSID7021360": "InChI=1S/C7H8/c1-7-5-3-2-4-6-7/h2-6H,1H3",
-            "DTXSID2021868": "InChI=1S/C8H10/c1-7-3-5-8(2)6-4-7/h3-6H,1-2H3",
-            "DTXSID3021807": "InChI=1S/C8H10/c1-7-5-3-4-6-8(7)2/h3-6H,1-2H3",
-            "DTXSID6026298": "InChI=1S/C8H10/c1-7-4-3-5-8(2)6-7/h3-6H,1-2H3",
-        }
-        test_search = self._conn.details(
-            by="batch", word=list(chemicals.keys()), subset="structures"
-        )
-        self.assertTrue(len(test_search), 4)
+    @patch('ctxpy.base.CTXConnection.batch')
+    def test_details_dtxsid_batch_less_than_batch_size_nta_subset(self,mocker):
+        hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
+               'dtxsid': 'DTXSID7021360',
+               'dtxcid': 'DTXCID501360',
+               'preferredName': 'Toluene'}
+        mocker.return_value = hit
 
-        for chem in test_search:
-            self.assertEqual(chem["inchiString"].strip(), chemicals[chem["dtxsid"]])
+        chem = ctxpy.Chemical()
+        result = chem.details(by='batch-dtxsid',
+                              word=['DTXSID7021360', 'DTXSID001009823'],
+                              subset='nta')
 
-    def test_details_dtxsid_nta(self):
-        test_search = self._conn.details(
-            by="dtxsid", word="DTXSID7021360", subset="nta"
-        )
-        self.assertEqual(test_search["inchikey"].strip(), "YXFVVABEGXRONW-UHFFFAOYSA-N")
+        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxsid/?projection=ntatoolkit',
+                                       word=["DTXSID7021360","DTXSID001009823"],
+                                       batch_size=1000,
+                                       bracketed=True)
+        self.assertEqual(result, hit)
 
-    def test_details_dtxcid_nta(self):
-        test_search = self._conn.details(by="dtxcid", word="DTXCID501360", subset="nta")
-        self.assertEqual(test_search["inchikey"].strip(), "YXFVVABEGXRONW-UHFFFAOYSA-N")
+    @patch('ctxpy.base.CTXConnection.batch')
+    def test_details_dtxsid_batch_greater_than_batch_size_no_subset(self,mocker):
+        hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
+               'dtxsid': 'DTXSID7021360',
+               'dtxcid': 'DTXCID501360',
+               'preferredName': 'Toluene'}
+        mocker.return_value = hit
 
-    def test_details_batch_nta(self):
-        chemicals = {
-            "DTXSID7021360": "YXFVVABEGXRONW-UHFFFAOYSA-N",
-            "DTXSID2021868": "URLKBWYHVLBVBO-UHFFFAOYSA-N",
-            "DTXSID3021807": "CTQNGGLPUBDAKN-UHFFFAOYSA-N",
-            "DTXSID6026298": "IVSZLXZYQVIEFR-UHFFFAOYSA-N",
-        }
-        test_search = self._conn.details(
-            by="batch", word=list(chemicals.keys()), subset="nta"
-        )
-        self.assertTrue(len(test_search), 4)
+        chem = ctxpy.Chemical()
+        result = chem.details(by='batch-dtxsid',
+                              word=['DTXSID7021360', 'DTXSID001009823'],
+                              batch_size=1,
+                              subset=None)
 
-        for chem in test_search:
-            self.assertEqual(chem["inchikey"].strip(), chemicals[chem["dtxsid"]])
+        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxsid/',
+                                       word=['DTXSID7021360', 'DTXSID001009823'],
+                                       batch_size=1,
+                                       bracketed=True)
+        self.assertEqual(result, hit)
 
-    def test_msready_dtxcid(self):
-        test_search = self._conn.msready(by="dtxcid", word="DTXCID501360")
-        self.assertTrue(len(test_search), 88)
-        self.assertTrue("DTXSID7021360" in test_search)
+    @patch('ctxpy.base.CTXConnection.batch')
+    def test_details_dtxsid_batch_greater_than_batch_size_nta_subset(self,mocker):
+        hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
+               'dtxsid': 'DTXSID7021360',
+               'dtxcid': 'DTXCID501360',
+               'preferredName': 'Toluene'}
+        mocker.return_value = hit
 
-    def test_msready_mass(self):
-        test_search = self._conn.msready(by="mass", start=92.06, end=92.07)
-        self.assertTrue("DTXSID7021360" in test_search)
+        chem = ctxpy.Chemical()
+        result = chem.details(by='batch-dtxsid',
+                              word=['DTXSID7021360', 'DTXSID001009823'],
+                              batch_size=1,
+                              subset='nta')
 
-    def test_msready_formula(self):
-        test_search = self._conn.msready(by="formula", word="C7H8")
-        self.assertTrue("DTXSID7021360" in test_search)
+        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxsid/?projection=ntatoolkit',
+                                       word=['DTXSID7021360', 'DTXSID001009823'],
+                                       batch_size=1,
+                                       bracketed=True)
+        self.assertEqual(result, hit)
+
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_details_dtxcid_no_subset(self,mocker):
+        hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
+               'dtxsid': 'DTXSID7021360',
+               'dtxcid': 'DTXCID501360',
+               'preferredName': 'Toluene'}
+        mocker.return_value = hit
+
+        chem = ctxpy.Chemical()
+        result = chem.details(by='dtxcid',word='DTXCID501360',subset=None)
+
+        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxcid/DTXCID501360')
+        self.assertEqual(result, hit)
+
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_details_dtxcid_nta_subset(self,mocker):
+        hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
+               'dtxsid': 'DTXSID7021360',
+               'dtxcid': 'DTXCID501360',
+               'preferredName': 'Toluene'}
+        mocker.return_value = hit
+
+        chem = ctxpy.Chemical()
+        result = chem.details(by='dtxcid',word='DTXCID501360',subset='nta')
+
+        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxcid/DTXCID501360?projection=ntatoolkit')
+        self.assertEqual(result, hit)
+
+    @patch('ctxpy.base.CTXConnection.batch')
+    def test_details_dtxcid_batch_less_than_batch_size_no_subset(self,mocker):
+        hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
+               'dtxsid': 'DTXSID7021360',
+               'dtxcid': 'DTXCID501360',
+               'preferredName': 'Toluene'}
+        mocker.return_value = hit
+
+        chem = ctxpy.Chemical()
+        result = chem.details(by='batch-dtxcid',word=['DTXCID501360','DTXCID701868'],subset=None)
+
+        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxcid/',
+                                       word=["DTXCID501360","DTXCID701868"],
+                                       batch_size=1000,
+                                       bracketed=True)
+        self.assertEqual(result, hit)
+
+    @patch('ctxpy.base.CTXConnection.batch')
+    def test_details_dtxcid_batch_less_than_batch_size_nta_subset(self,mocker):
+        hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
+               'dtxsid': 'DTXSID7021360',
+               'dtxcid': 'DTXCID501360',
+               'preferredName': 'Toluene'}
+        mocker.return_value = hit
+
+        chem = ctxpy.Chemical()
+        result = chem.details(by='batch-dtxcid',
+                              word=['DTXCID501360','DTXCID701868'],
+                              subset='nta')
+
+        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxcid/?projection=ntatoolkit',
+                                       word=["DTXCID501360","DTXCID701868"],
+                                       batch_size=1000,
+                                       bracketed=True)
+        self.assertEqual(result, hit)
+
+    @patch('ctxpy.base.CTXConnection.batch')
+    def test_details_dtxscid_batch_greater_than_batch_size_no_subset(self,mocker):
+        hit = [{"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
+               'dtxsid': 'DTXSID7021360',
+               'dtxcid': 'DTXCID501360',
+               'preferredName': 'Toluene'},
+               {'inchikey': 'URLKBWYHVLBVBO-UHFFFAOYSA-N',
+                'dtxsid': 'DTXSID2021868',
+                'dtxcid': 'DTXCID701868',
+                'preferredName': 'p-Xylene',}]
+        mocker.return_value = hit
+
+        chem = ctxpy.Chemical()
+        result = chem.details(by='batch-dtxcid',
+                              word=['DTXCID501360','DTXCID701868'],
+                              batch_size=1,
+                              subset=None)
+
+        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxcid/',
+                                       word=['DTXCID501360','DTXCID701868'],
+                                       batch_size=1,
+                                       bracketed=True)
+        self.assertEqual(result, hit)
+
+    @patch('ctxpy.base.CTXConnection.batch')
+    def test_details_dtxcid_batch_greater_than_batch_size_nta_subset(self,mocker):
+        hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
+               'dtxsid': 'DTXSID7021360',
+               'dtxcid': 'DTXCID501360',
+               'preferredName': 'Toluene'}
+        mocker.return_value = hit
+
+        chem = ctxpy.Chemical()
+        result = chem.details(by='batch-dtxcid',
+                              word=['DTXCID501360','DTXCID701868'],
+                              batch_size=1,
+                              subset='nta')
+
+        
+        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxcid/?projection=ntatoolkit',
+                                       word=['DTXCID501360','DTXCID701868'],
+                                       batch_size=1,
+                                       bracketed=True)
+        self.assertEqual(result, hit)
+
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_msready_dtxsid(self,mocker):
+        hit = ['DTXSID00184990','DTXSID00370457','DTXSID00454524','DTXSID00480404',
+               'DTXSID00566454','DTXSID00578496','DTXSID00746158','DTXSID00749720']
+        mocker.return_value = hit
+
+        chem = ctxpy.Chemical()
+        result = chem.msready(by='dtxcid',
+                              word='DTXCID30182')
+
+        mocker.assert_called_once_with(suffix='chemical/msready/search/by-dtxcid/DTXCID30182')
+        self.assertEqual(result, hit)
+        self.assertEqual(result, hit)
+
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_msready_mass(self,mocker):
+        hit = ['DTXSID00184990','DTXSID00370457','DTXSID00454524','DTXSID00480404',
+               'DTXSID00566454','DTXSID00578496','DTXSID00746158','DTXSID00749720']
+        mocker.return_value = hit
+
+        chem = ctxpy.Chemical()
+        result = chem.msready(by='mass',
+                              start=200.9, end=200.95)
+
+        mocker.assert_called_once_with(suffix='chemical/msready/search/by-mass/200.9/200.95')
+        self.assertEqual(result, hit)
+
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_msready_formula(self,mocker):
+        hit = ['DTXSID00184990','DTXSID00370457','DTXSID00454524','DTXSID00480404',
+               'DTXSID00566454','DTXSID00578496','DTXSID00746158','DTXSID00749720']
+        mocker.return_value = hit
+
+        chem = ctxpy.Chemical()
+        result = chem.msready(by='formula',
+                              word='C16H24N2O5S')
+
+        mocker.assert_called_once_with(suffix='chemical/msready/search/by-formula/C16H24N2O5S')
+        self.assertEqual(result, hit)
 
 
 if __name__ == "__main__":
