@@ -1,6 +1,8 @@
-from importlib import resources
+import logging
 from typing import Iterable, Optional, Union
 from urllib.parse import quote
+
+from pandas.api.types import is_list_like
 
 from .base import CTXConnection
 
@@ -39,13 +41,14 @@ class Chemical(CTXConnection):
 
     """
 
+    KIND = "chemical"
+
     def __init__(self, x_api_key: Optional[str] = None):
         super().__init__(x_api_key=x_api_key)
-        self.kind = "chemical"
-        self.batch_size = 1000
 
 
-    def search(self, by: str, word: Union[str, Iterable[str]]):
+    def search(self, by: str, word: Union[str, Iterable[str]],
+               batch_size: Optional[int]=200):
         """
         Search for chemical(s) using chemical identifiers via CCTE's APIs.
 
@@ -66,6 +69,12 @@ class Chemical(CTXConnection):
             If string, the single chemical identifer (or part of the identifier)
             to search for. If list-list, a list or other iterable of identifiers to 
             search for.
+
+        batch_size: 200
+            If `by` argument is "batch", then only 200 DTXSIDs may be submitted as the
+            `word` argument. If more than 200 are submitted, then the request is 
+            chunked into batches of `batch_size`. If `by` argument is any other option 
+            than `batch` this argument is ignored.
 
         Return
         ------
@@ -188,40 +197,34 @@ class Chemical(CTXConnection):
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
 
         if by == "batch":
-            suffix = f"{self.kind}/search/{options[by]}/"
+            suffix = f"{self.KIND}/search/{options[by]}/"
             
-            if (not isinstance(word, Iterable)) or (isinstance(word, str)):
+            if not is_list_like(word):
                 raise TypeError(
                     "Arugment `by` is 'batch', " "but `word` is not an list-type."
                 )
+            if len(word) > batch_size:
 
-                info = super(Chemical,self).batch(suffix=suffix,
-                                                  word=word,
-                                                  batch_size=self.batch_size,
-                                                  bracketed=False)
+                logging.warning(f"{len(word)} words were submitted for searching, this is greater "
+                     f"than the current API limit of {batch_size}. Search will be "
+                     "batched to meet API requirements.")
 
-                ## Convert to warning
-                raise ValueError(
-                    "API will not accept more than 200 words at a "
-                    "time. Chunk list and resubmit."
-                )
-
-            else:
-                word = "\n".join([quote(w, safe="") for w in word])
-
-                info = super(Chemical, self).post(suffix=suffix, word=word)
+            ## This is a special wrapper of the CTXConnection `post` method.
+            info = super(Chemical,self).batch(suffix=suffix,
+                                                word=word,
+                                                batch_size=batch_size,
+                                                bracketed=False)
 
         else:
             word = quote(word, safe="")
-            suffix = f"{self.kind}/search/{options[by]}/{word}"
+            suffix = f"{self.KIND}/search/{options[by]}/{word}"
 
             info = super(Chemical, self).get(suffix=suffix)
 
         return info
 
-    def details(
-        self, by: str, word: Union[str, Iterable[str]], subset: Optional[str] = "all"
-    ):
+    def details(self, by: str, word: Union[str, Iterable[str]],
+                subset: Optional[str]="all", batch_size:Optional[int]=1000)->list:
         ## TODO: add exactly what each subset returns
         """
         Get detailed information about chemical(s) via CCTE's APIs.
@@ -246,6 +249,12 @@ class Chemical(CTXConnection):
             If None, then default values are returned from call. If string, then
             one of six valid subsets of data to call. Options are 'default',
             'all','details','identifiers', 'structures', and 'nta'.
+
+        batch_size: 1000
+            If `by` argument is "batch", then only 1000 DTXSIDs may be submitted as the
+            `word` argument. If more than 1000 are submitted, then the request is 
+            chunked into batches of `batch_size`. If `by` argument is any other option 
+            than `batch` this argument is ignored.
 
         Return
         ------
@@ -316,10 +325,10 @@ class Chemical(CTXConnection):
         by_options = {
             "dtxsid": "by-dtxsid",
             "dtxcid": "by-dtxcid",
-            "batch": "by-dtxsid",
+            "batch-dtxsid": "by-dtxsid",
+            "batch-dtxcid": "by-dtxcid",
         }
         subset_options = {
-            "default": None,
             "all": "chemicaldetailall",
             "details": "chemicaldetailstandard",
             "identifiers": "chemicalidentifier",
@@ -330,19 +339,29 @@ class Chemical(CTXConnection):
         if by not in by_options.keys():
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
 
-        if subset not in subset_options.keys():
+        if (subset is not None) and (subset not in subset_options.keys()):
             raise KeyError(f"Value {subset} is invalid option for argument `subset`.")
 
-        if by == "batch":
-            if (not isinstance(word, Iterable)) or (isinstance(word, str)):
+        if "batch" in by:
+            
+            if not is_list_like(word):
                 raise TypeError(
                     "Arugment `by` is 'batch', " "but `word` is not an list-type."
                 )
-
-            suffix = f"{self.kind}/detail/search/{by_options[by]}/"
+            if subset is None:
+                suffix = f"{self.KIND}/detail/search/{by_options[by]}/"
+            else:
+                suffix = (
+                    f"{self.KIND}/detail/search/{by_options[by]}/"
+                    f"?projection={subset_options[subset]}"
+                )
+            if len(word) > batch_size:
+                logging.warning(f"{len(word)} words were submitted for searching, this is greater "
+                     f"than the current API limit of {batch_size}. Search will be "
+                     "batched to meet API requirements.",stacklevel=1)
             info = super(Chemical,self).batch(suffix=suffix,
                                               word=word,
-                                              batch_size=self.batch_size,
+                                              batch_size=batch_size,
                                               bracketed=True)
 
         else:
@@ -354,10 +373,10 @@ class Chemical(CTXConnection):
             word = quote(word, safe="")
 
             if subset is None:
-                suffix = f"{self.kind}/detail/search/{by_options[by]}/{word}"
+                suffix = f"{self.KIND}/detail/search/{by_options[by]}/{word}"
             else:
                 suffix = (
-                    f"{self.kind}/detail/search/{by_options[by]}/{word}"
+                    f"{self.KIND}/detail/search/{by_options[by]}/{word}"
                     f"?projection={subset_options[subset]}"
                 )
 
@@ -468,11 +487,11 @@ class Chemical(CTXConnection):
                 )
 
             word = f"{start}/{end}"
-            suffix = f"{self.kind}/msready/search/{options[by]}/{word}"
+            suffix = f"{self.KIND}/msready/search/{options[by]}/{word}"
 
         else:
             word = quote(word, safe="")
-            suffix = f"{self.kind}/msready/search/{options[by]}/{word}"
+            suffix = f"{self.KIND}/msready/search/{options[by]}/{word}"
 
             if not isinstance(word, str):
                 raise TypeError(f"Argument `by` is {by}, " "but `word` is not string.")
