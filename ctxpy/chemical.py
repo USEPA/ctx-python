@@ -211,9 +211,9 @@ class Chemical(CTXConnection):
 
             ## This is a special wrapper of the CTXConnection `post` method.
             info = super(Chemical,self).batch(suffix=suffix,
-                                                word=word,
-                                                batch_size=batch_size,
-                                                bracketed=False)
+                                              word=word,
+                                              batch_size=batch_size,
+                                              bracketed=False)
 
         else:
             word = quote(word, safe="")
