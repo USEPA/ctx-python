@@ -81,7 +81,7 @@ class CTXConnection:
 
         return info
 
-    def post(self, suffix: str, word: str):
+    def post(self, suffix: str, word: str, bracketed:bool):
         """
         Request information via API call, but also supply stipulations on subsets or
         specific aspects of returned information
@@ -98,6 +98,16 @@ class CTXConnection:
         -------
         dict, JSON information that was requested in the API call
         """
+        ## POSTs only happen with a list of data, which is why this should work.
+        ## If that ever changes, I'd need to check that `word` is a list-like first
+        if bracketed:
+            ## '["DTXSID001", "DTXSID002"]'
+            word = [quote(w, safe="") for w in word]
+            word = '["' + '","'.join(word) + '"]'
+        else:
+            ## '"DTXSID001"\n"DTXSID002"'
+            word = "\n".join([quote(w, safe="") for w in word])
+
         try:
             self.headers = {**self.headers, **{"content-type": "application/json"}}
             self.response = requests.post(
@@ -115,7 +125,7 @@ class CTXConnection:
 
         return info
     
-    def batch(self, suffix: str, word: Iterable[str], batch_size: int, bracketed:bool = False):
+    def batch(self, suffix: str, word: Iterable[str], batch_size: int, bracketed:bool):
         """
         There are some inconsistencies in how to provide 'batch' data to the API.
         Sometimes the list of identifiers needs to be a bracketed list, other times it
@@ -126,20 +136,17 @@ class CTXConnection:
         ## Remove duplicated DTXSIDs
         word = list(set(word))
 
-        chunks = []
-        for chunk in chunker(word, batch_size):
-            
-            if bracketed:
-                ## '["DTXSID001", "DTXSID002"]'
-                words = [quote(w, safe="") for w in chunk]
-                words = '["' + '","'.join(words) + '"]'
-            else:
-                ## '"DTXSID001"\n"DTXSID002"'
-                words = "\n".join([quote(w, safe="") for w in chunk])
+        if len(word) > batch_size:
 
-            ## TODO: Check that suffix is re-written on each loop,
-            ## not appended to
-            chunks.extend(self.post(suffix = suffix, word=words))
+            chunks = []
+            for chunk in chunker(word, batch_size):
+
+                ## TODO: Check that suffix is re-written on each loop,
+                ## not appended to
+                chunks.extend(self.post(suffix = suffix, word=word, bracketed=bracketed))
+        else:
+            chunks = self.post(suffix = suffix, word=word, bracketed=bracketed)
+            
         return chunks
 
 
@@ -199,3 +206,35 @@ class HCDConnection:
             info = info['chemicals'][0]['descriptors']
 
         return info
+
+
+class ResponseTransformer:
+    def __init__(self,data):
+        self._data = data
+
+    def __iter__(self):
+        """
+        Implements iteration over the PostResponse object, 
+        allowing it to be used in loops and other iterable contexts, 
+        returning the raw list of dictionaries.
+        """
+        return iter(self._data)
+
+    def __getitem__(self,index):
+        """
+        Supports indexing, enabling access to individual elements of 
+        the raw data.
+        """
+        return self._data[index]
+
+    def __repr__(self):
+        """
+        Provides a string representation of the raw data, which is 
+        useful for debugging and when printing the object.
+        """
+        return repr(self._data)
+    
+    def to_df(self):
+        df = pd.DataFrame(self._data).fillna(pd.NA).replace("-",pd.NA).replace("",pd.NA)
+        df.attrs = {"response":self._data}
+        return df
