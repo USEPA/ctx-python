@@ -1,169 +1,620 @@
-import pandas as pd
-from pandas.testing import assert_frame_equal
-import json
 import unittest
-import time
-import ctxpy as ctx
+from unittest.mock import patch
+import pandas as pd
+import ctxpy
 
+class CustomAssertions:
+    def assertFramesEqual(self,left,right,**kwargs):
+        try:
+            pd.testing.assert_frame_equal(left=left,right=right,**kwargs)
+        except AssertionError as e:
+            raise e
 
-class TestExposure(unittest.TestCase):
-    
-    @classmethod
-    def setUpClass(cls):
-        cls._conn = ctx.Exposure()
+class TestExposure(unittest.TestCase, CustomAssertions):
+
+    """
+    All endpoint suffixes and response examplesa are taken from:
+    https://comptox.epa.gov/ctx-api/docs/exposure.html
+    """
+
+    @patch('ctxpy.base.CTXConnection.batch')
+    def test_search_cpdat_fc_batch(self, mocker):
+
+        hit = [{"id": 0,
+                "dtxsid": "AAAAAA",
+                "datatype": "AAAAAA",
+                "docid": 0,
+                "doctitle": "AAAAAA",
+                "docdate": "AAAAAA",
+                "reportedfunction": "AAAAAA",
+                "functioncategory": "AAAAAA"}]
+
+        dtxsid = ['DTXSID7020182','DTXSID2021868']
+
+        # Mock the response from the get method
+        mocker.return_value = hit
+
+        expo = ctxpy.Exposure()
+        result = expo.search_cpdat(vocab_name='fc', dtxsid=dtxsid)
+
+        suffix = 'exposure/functional-use/search/by-dtxsid/'
+        # Assertions to verify the behavior
+        mocker.assert_called_once_with(suffix=suffix,
+                                       word=dtxsid,
+                                       batch_size=200,
+                                       bracketed=True)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
+
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_search_cpdat_fc_serial(self, mocker):
+
+        hit = [{"id": 0,
+                "dtxsid": "AAAAAA",
+                "datatype": "AAAAAA",
+                "docid": 0,
+                "doctitle": "AAAAAA",
+                "docdate": "AAAAAA",
+                "reportedfunction": "AAAAAA",
+                "functioncategory": "AAAAAA"}]
         
-    def tearDown(self):
-        time.sleep(1)
+        dtxsid = 'DTXSID7020182'
 
-    def read_browser_return(self,file):
-        with open(f"browser_api_returns/exposure/{file}.json",'rb') as f:
-            info = pd.DataFrame(json.load(f)).fillna(pd.NA).replace("-",pd.NA)
-        info = info.fillna(pd.NA).replace("-",pd.NA).replace("",pd.NA).copy()
-        info.sort_index(axis=1,inplace=True)
-        info.sort_values(by=info.columns.tolist(),inplace=True)
-        return info
+        # Mock the response from the get method
+        mocker.return_value = hit
 
-    def test_connection(self):
-        self.assertEqual(self._conn.host, "https://comptox.epa.gov/ctx-api/")
-        self.assertEqual(self._conn.headers["accept"], "application/json")
-        self.assertIsNotNone(self._conn.headers['x-api-key'])
-        self.assertEqual(self._conn.kind,'exposure')
+        expo = ctxpy.Exposure()
+        result = expo.search_cpdat(vocab_name='fc',dtxsid=dtxsid)
+
+        suffix = f"exposure/functional-use/search/by-dtxsid/{dtxsid}"
+
+        # Assertions to verify the behavior
+        mocker.assert_called_once_with(suffix=suffix)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
+
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_search_qsurs_serial(self,mocker):
+
+        hit = [{"dtxsid": "string",
+                "harmonizedFunctionalUse": "string",
+                "probability": 0}]
         
-    # def test_search_cpdat_by_fc(self):
-    #     dtxsid = "DTXSID7020182"
-    #     test = self._conn.search_cpdat(vocab_name="fc",dtxsid=dtxsid)
-    #     test.sort_index(axis=1,inplace=True)
-    #     test.sort_values(by=test.columns.tolist(),inplace=True)
-    #     info = self.read_browser_return(file="search_cpdat_by_fc")
-    #     assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+        dtxsid = 'DTXSID7020182'
+        
+        mocker.return_value = hit
 
-    # def test_search_batch_cpdat_by_fc(self):
-    #     dtxsids = ['DTXSID2021868','DTXSID7021360']
-    #     test = self._conn.search_cpdat(vocab_name='fc',dtxsid=dtxsids)
-    #     test.sort_index(axis=1,inplace=True)
-    #     test.sort_values(by=test.columns.tolist(),inplace=True)
-    #     info = self.read_browser_return(file="search_batch_cpdat_by_fc")
-    #     assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+        expo = ctxpy.Exposure()
+        result = expo.search_qsurs(dtxsid=dtxsid)
 
-    # def test_search_cpdat_by_puc(self):
-    #     dtxsid = "DTXSID7020182"
-    #     test = self._conn.search_cpdat(vocab_name="puc",dtxsid=dtxsid)
-    #     test.sort_index(axis=1,inplace=True)
-    #     test.sort_values(by=test.columns.tolist(),inplace=True)
-    #     info = self.read_browser_return(file="search_cpdat_by_puc")
-    #     assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+        suffix = f"exposure/functional-use/probability/search/by-dtxsid/{dtxsid}"
+        
+        mocker.assert_called_once_with(suffix=suffix)
+        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
+        
 
-    # def test_search_batch_cpdat_by_puc(self):
-    #     dtxsids = ['DTXSID2021868','DTXSID7021360']
-    #     test = self._conn.search_cpdat(vocab_name='puc',dtxsid=dtxsids)
-    #     test.sort_index(axis=1,inplace=True)
-    #     test.sort_values(by=test.columns.tolist(),inplace=True)
-    #     info = self.read_browser_return(file="search_batch_cpdat_by_puc")
-    #     assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_get_cpdat_vocabulary_fc(self, mocker):
 
-    # def test_search_cpdat_by_lpk(self):
-    #     dtxsid = "DTXSID7020182"
-    #     test = self._conn.search_cpdat(vocab_name="lpk",dtxsid=dtxsid)
-    #     test.sort_index(axis=1,inplace=True)
-    #     test.sort_values(by=test.columns.tolist(),inplace=True)
-    #     info = self.read_browser_return(file="search_cpdat_by_lpk")
-    #     assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+        hit = [{"id": 0,
+                "category": "AAAAAA",
+                "definition": "string"}]
 
-    # def test_search_batch_cpdat_by_lpk(self):
-    #     dtxsids = ['DTXSID2021868','DTXSID7021360']
-    #     test = self._conn.search_cpdat(vocab_name='lpk',dtxsid=dtxsids)
-    #     test.sort_index(axis=1,inplace=True)
-    #     test.sort_values(by=test.columns.tolist(),inplace=True)
-    #     info = self.read_browser_return(file="search_batch_cpdat_by_lpk")
-    #     assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+        # Mock the response from the get method
+        mocker.return_value = hit
 
-    # def test_search_qsurs(self):
-    #     dtxsid = "DTXSID7020182"
-    #     test = self._conn.search_qsurs(dtxsid=dtxsid)
-    #     test.sort_index(axis=1,inplace=True)
-    #     test.sort_values(by=test.columns.tolist(),inplace=True)
-    #     info = self.read_browser_return(file="search_qsurs")
-    #     assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+        expo = ctxpy.Exposure()
+        result = expo.get_cpdat_vocabulary(vocab_name='fc')
 
-    # def test_search_batch_qsurs(self):
-    #     dtxsids = ['DTXSID2021868','DTXSID7021360']
-    #     test = self._conn.search_qsurs(dtxsid=dtxsids)
-    #     test.sort_index(axis=1,inplace=True)
-    #     test.sort_values(by=test.columns.tolist(),inplace=True)
-    #     info = self.read_browser_return(file="search_batch_qsurs")
-    #     assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+        suffix = 'exposure/functional-use/category'
 
-    # def test_search_httk(self):
-    #     dtxsid = "DTXSID7020182"
-    #     test = self._conn.search_httk(dtxsid=dtxsid)
-    #     test.sort_index(axis=1,inplace=True)
-    #     test.sort_values(by=test.columns.tolist(),inplace=True)
-    #     info = self.read_browser_return(file="search_httk")
-    #     assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+        # Assertions to verify the behavior
+        mocker.assert_called_once_with(suffix=suffix)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    # def test_search_batch_httk(self):
-    #     dtxsids = ['DTXSID4020458','DTXSID7020182']
-    #     test = self._conn.search_httk(dtxsid=dtxsids)
-    #     test.sort_index(axis=1,inplace=True)
-    #     test.sort_values(by=test.columns.tolist(),inplace=True)
-    #     info = self.read_browser_return(file="search_batch_httk")
-    #     assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_search_cpdat_puc_serial(self, mocker):
 
-    # def test_search_exposures_pathways(self):
-    #     dtxsid = "DTXSID7020182"
-    #     test = self._conn.search_exposures(by='pathways',dtxsid=dtxsid)
-    #     test.sort_index(axis=1,inplace=True)
-    #     test.sort_values(by=test.columns.tolist(),inplace=True)
-    #     info = self.read_browser_return(file="search_exposures_pathways")
-    #     assert_frame_equal(test.reset_index(drop=True),
-    #                        info.reset_index(drop=True),
-    #                        check_dtype=False)
+        hit = [{"id": 0,
+                "dtxsid": "AAAAAA",
+                "docid": 0,
+                "doctitle": "AAAAAA",
+                "docdate": "AAAAAA",
+                "productname": "AAAAAA",
+                "gencat": "AAAAAA",
+                "prodfam": "AAAAAA",
+                "prodtype": "AAAAAA",
+                "classificationmethod": "AAAAAA",
+                "rawmincomp": "AAAAAA",
+                "rawmaxcomp": "AAAAAA",
+                "rawcentralcomp": "AAAAAA",
+                "unittype": "AAAAAA",
+                "lowerweightfraction": 0,
+                "upperweightfraction": 0,
+                "centralweightfraction": 0,
+                "weightfractiontype": "AAAAAA",
+                "component": "AAAAAA"}]
 
-    # def test_search_batch_exposures_pathways(self):
-    #     dtxsids = ['DTXSID2021868','DTXSID7021360']
-    #     test = self._conn.search_exposures(by='pathways',dtxsid=dtxsids)
-    #     test.sort_index(axis=1,inplace=True)
-    #     test.sort_values(by=test.columns.tolist(),inplace=True)
-    #     info = self.read_browser_return(file="search_batch_exposures_pathways")
-    #     assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+        dtxsid = 'DTXSID7020182'
 
-    # def test_search_exposures_seem(self):
-    #     dtxsid = "DTXSID7020182"
-    #     test = self._conn.search_exposures(by='seem',dtxsid=dtxsid)
-    #     test.sort_index(axis=1,inplace=True)
-    #     test.sort_values(by=test.columns.tolist(),inplace=True)
-    #     info = self.read_browser_return(file="search_batch_exposures_pathways")
-    #     info = self.read_browser_return(file="search_exposures_seem")
-    #     assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+        # Mock the response from the get method
+        mocker.return_value = hit
 
-    # def test_search_batch_exposures_seem(self):
-    #     dtxsids = ['DTXSID2021868','DTXSID7021360']
-    #     test = self._conn.search_exposures(by='seem',dtxsid=dtxsids)
-    #     test.sort_index(axis=1,inplace=True)
-    #     test.sort_values(by=test.columns.tolist(),inplace=True)
-    #     info = self.read_browser_return(file="search_batch_exposures_seem")
-    #     assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+        expo = ctxpy.Exposure()
+        result = expo.search_cpdat(vocab_name='puc',dtxsid=dtxsid)
 
-    # def test_fc_vocabulary(self):
-    #     test = self._conn.get_cpdat_vocabulary(vocab_name='fc')
-    #     test.sort_index(axis=1,inplace=True)
-    #     test.sort_values(by=test.columns.tolist(),inplace=True)
-    #     info = self.read_browser_return(file="fc_vocabulary")
-    #     assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+        suffix = f'exposure/product-data/search/by-dtxsid/{dtxsid}'
+        # Assertions to verify the behavior
+        mocker.assert_called_once_with(suffix=suffix)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    # def test_puc_vocabulary(self):
-    #     test = self._conn.get_cpdat_vocabulary(vocab_name='puc')
-    #     test.sort_index(axis=1,inplace=True)
-    #     test.sort_values(by=test.columns.tolist(),inplace=True)
-    #     info = self.read_browser_return(file="puc_vocabulary")
-    #     assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+    @patch('ctxpy.base.CTXConnection.batch')
+    def test_search_cpdat_puc_batch(self, mocker):
 
-    # def test_lpk_vocabulary(self):
-    #     test = self._conn.get_cpdat_vocabulary(vocab_name='lpk')
-    #     test.sort_index(axis=1,inplace=True)
-    #     test.sort_values(by=test.columns.tolist(),inplace=True)
-    #     info = self.read_browser_return(file="lpk_vocabulary")
-    #     assert_frame_equal(test.reset_index(drop=True),info.reset_index(drop=True))
+        hit = [{"id": 0,
+                "dtxsid": "AAAAAA",
+                "docid": 0,
+                "doctitle": "AAAAAA",
+                "docdate": "AAAAAA",
+                "productname": "AAAAAA",
+                "gencat": "AAAAAA",
+                "prodfam": "AAAAAA",
+                "prodtype": "AAAAAA",
+                "classificationmethod": "AAAAAA",
+                "rawmincomp": "AAAAAA",
+                "rawmaxcomp": "AAAAAA",
+                "rawcentralcomp": "AAAAAA",
+                "unittype": "AAAAAA",
+                "lowerweightfraction": 0,
+                "upperweightfraction": 0,
+                "centralweightfraction": 0,
+                "weightfractiontype": "AAAAAA",
+                "component": "AAAAAA"}]
+
+        dtxsid = ['DTXSID7020182','DTXSID2021868']
+
+        # Mock the response from the get method
+        mocker.return_value = hit
+
+        expo = ctxpy.Exposure()
+        result = expo.search_cpdat(vocab_name='puc',dtxsid=dtxsid)
+
+        suffix = 'exposure/product-data/search/by-dtxsid/'
+        # Assertions to verify the behavior
+        mocker.assert_called_once_with(suffix=suffix,
+                                       word=dtxsid,
+                                       batch_size=200,
+                                       bracketed=True)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
+
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_get_cpdat_vocabulary_puc(self,mocker):
+        hit = [{"id": 0,
+                "kindName": "AAAAAA",
+                "genCat": "AAAAAA",
+                "prodfam": "AAAAAA",
+                "prodtype": "AAAAAA",
+                "definition": "string"}]
+
+        mocker.return_value = hit
+
+        expo = ctxpy.Exposure()
+        result = expo.get_cpdat_vocabulary(vocab_name='puc')
+
+        suffix = 'exposure/product-data/puc'
+
+        mocker.assert_called_once_with(suffix=suffix)
+        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
+
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_search_cpdat_lpk_serial(self, mocker):
+
+        hit = [{"id": 0,
+                "dtxsid": "string",
+                "docid": 0,
+                "doctitle": "AAAAAA",
+                "docsubtitle": "AAAAAA",
+                "docdate": "AAAAAA",
+                "organization": "AAAAAA",
+                "reportedfunction": "AAAAAA",
+                "functioncategory": "AAAAAA",
+                "component": "AAAAAA",
+                "keywordset": "string"}]
+
+        dtxsid = 'DTXSID7020182'
+
+        # Mock the response from the get method
+        mocker.return_value = hit
+
+        expo = ctxpy.Exposure()
+        result = expo.search_cpdat(vocab_name='lpk',dtxsid=dtxsid)
+
+        suffix = f'exposure/list-presence/search/by-dtxsid/{dtxsid}'
+        # Assertions to verify the behavior
+        mocker.assert_called_once_with(suffix=suffix)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
+
+    @patch('ctxpy.base.CTXConnection.batch')
+    def test_search_cpdat_lpk_batch(self, mocker):
+
+        hit = [{"id": 0,
+                "dtxsid": "string",
+                "docid": 0,
+                "doctitle": "AAAAAA",
+                "docsubtitle": "AAAAAA",
+                "docdate": "AAAAAA",
+                "organization": "AAAAAA",
+                "reportedfunction": "AAAAAA",
+                "functioncategory": "AAAAAA",
+                "component": "AAAAAA",
+                "keywordset": "string"}]
+
+        dtxsid = ['DTXSID7020182','DTXSID2021868']
+
+        # Mock the response from the get method
+        mocker.return_value = hit
+
+        expo = ctxpy.Exposure()
+        result = expo.search_cpdat(vocab_name='lpk',dtxsid=dtxsid)
+
+        suffix = 'exposure/list-presence/search/by-dtxsid/'
+        # Assertions to verify the behavior
+        mocker.assert_called_once_with(suffix=suffix,
+                                       word=dtxsid,
+                                       batch_size=200,
+                                       bracketed=True)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
+
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_get_cpdat_vocabulary_lpk(self,mocker):
+        hit = [{"id": 0,
+                "tagName": "AAAAAA",
+                "tagDefinition": "AAAAAA",
+                "tagKind": "AAAAAA"}]
+
+        mocker.return_value = hit
+
+        expo = ctxpy.Exposure()
+        result = expo.get_cpdat_vocabulary(vocab_name='lpk')
+
+        suffix = 'exposure/list-presence/tags'
+
+        mocker.assert_called_once_with(suffix=suffix)
+        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+
+    @patch('ctxpy.base.CTXConnection.batch')
+    def test_search_httk_batch(self, mocker):
+        hit = [{"id": 0,
+                "dtxsid": "AAAAAA",
+                "parameter": "AAAAAA",
+                "measuredText": "AAAAAA",
+                "measured": 0,
+                "predictedText": "AAAAAA",
+                "predicted": 0,
+                "units": "AAAAAA",
+                "model": "AAAAAA",
+                "reference": "AAAAAA",
+                "percentile": "AAAAA",
+                "species": "AAAAAA",
+                "dataSourceSpecies": "AAAAAA"}]
+
+        dtxsid = ['DTXSID7020182','DTXSID2021868']
+
+        # Mock the response from the get method
+        mocker.return_value = hit
+
+        expo = ctxpy.Exposure()
+        result = expo.search_httk(dtxsid=dtxsid)
+
+        suffix = 'exposure/httk/search/by-dtxsid/'
+        # Assertions to verify the behavior
+        mocker.assert_called_once_with(suffix=suffix,
+                                       word=dtxsid,
+                                       batch_size=200,
+                                       bracketed=True)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
+
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_search_httk_serial(self, mocker):
+        hit = [{"id": 0,
+                "dtxsid": "AAAAAA",
+                "parameter": "AAAAAA",
+                "measuredText": "AAAAAA",
+                "measured": 0,
+                "predictedText": "AAAAAA",
+                "predicted": 0,
+                "units": "AAAAAA",
+                "model": "AAAAAA",
+                "reference": "AAAAAA",
+                "percentile": "AAAAA",
+                "species": "AAAAAA",
+                "dataSourceSpecies": "AAAAAA"}]
+
+        dtxsid = 'DTXSID7020182'
+
+        # Mock the response from the get method
+        mocker.return_value = hit
+
+        expo = ctxpy.Exposure()
+        result = expo.search_httk(dtxsid=dtxsid)
+
+        suffix = f'exposure/httk/search/by-dtxsid/{dtxsid}'
+
+        mocker.assert_called_once_with(suffix=suffix)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
+
+    @patch('ctxpy.base.CTXConnection.batch')
+    def test_search_pathways_exposures_batch(self,mocker):
+        hit = [{"dtxsid": "AAAAAA",
+                "productionVolume": 0,
+                "units": "AAAAAA",
+                "stockholmConvention": 0,
+                "probabilityDietary": 0,
+                "probabilityResidential": 0,
+                "probabilityPesticde": 0,
+                "probabilityIndustrial": 0}]
+
+        dtxsid = ['DTXSID7020182','DTXSID2021868']
+        mocker.return_value = hit
+
+        expo = ctxpy.Exposure()
+        result = expo.search_exposures(by='pathways',dtxsid=dtxsid)
+
+        suffix = 'exposure/seem/general/search/by-dtxsid/'
+
+        mocker.assert_called_once_with(suffix=suffix,
+                                       word=dtxsid,
+                                       batch_size=200,
+                                       bracketed=True)
+        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
+
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_search_pathways_exposures_serial(self,mocker):
+        hit = [{"dtxsid": "AAAAAA",
+                "productionVolume": 0,
+                "units": "AAAAAA",
+                "stockholmConvention": 0,
+                "probabilityDietary": 0,
+                "probabilityResidential": 0,
+                "probabilityPesticde": 0,
+                "probabilityIndustrial": 0}]
+
+        dtxsid = 'DTXSID7020182'
+        mocker.return_value = hit
+
+        expo = ctxpy.Exposure()
+        result = expo.search_exposures(by='pathways',dtxsid=dtxsid)
+
+        suffix = f'exposure/seem/general/search/by-dtxsid/{dtxsid}'
+
+        mocker.assert_called_once_with(suffix=suffix)
+        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+
+    @patch('ctxpy.base.CTXConnection.batch')
+    def test_search_seem_exposures_batch(self,mocker):
+        hit = [{"dtxsid": "AAAAAA",
+                "productionVolume": 0,
+                "units": "AAAAAA",
+                "stockholmConvention": 0,
+                "probabilityDietary": 0,
+                "probabilityResidential": 0,
+                "probabilityPesticde": 0,
+                "probabilityIndustrial": 0}]
+
+        dtxsid = ['DTXSID7020182','DTXSID2021868']
+        mocker.return_value = hit
+
+        expo = ctxpy.Exposure()
+        result = expo.search_exposures(by='seem',dtxsid=dtxsid)
+
+        suffix = 'exposure/seem/demographic/search/by-dtxsid/'
+
+        mocker.assert_called_once_with(suffix=suffix,
+                                       word=dtxsid,
+                                       batch_size=200,
+                                       bracketed=True)
+        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_search_seem_exposures_serial(self,mocker):
+        hit = [{"dtxsid": "AAAAAA",
+                "productionVolume": 0,
+                "units": "AAAAAA",
+                "stockholmConvention": 0,
+                "probabilityDietary": 0,
+                "probabilityResidential": 0,
+                "probabilityPesticde": 0,
+                "probabilityIndustrial": 0}]
+
+        dtxsid = 'DTXSID7020182'
+        mocker.return_value = hit
+
+        expo = ctxpy.Exposure()
+        result = expo.search_exposures(by='seem',dtxsid=dtxsid)
+
+        suffix = f'exposure/seem/demographic/search/by-dtxsid/{dtxsid}'
+
+        mocker.assert_called_once_with(suffix=suffix)
+        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_search_mmdb_by_medium(self, mocker):
+        hit = {"medium": "livestock/meat",
+               "totalRecords": 380,
+               "recordsOnPage": 380,
+               "pageNumber": 1,
+               "totalPages": 1,
+               "data":[{"id": 0,
+                        "fullSourceName": "AAAAAA",
+                        "chemicalName": "AAAAAA",
+                        "dtxsid": "AAAAAA",
+                        "preferredName": "AAAAAA",
+                        "casrn": "AAAAAA",
+                        "result": "string",
+                        "units": "AAAAAA",
+                        "cleanedUnits": "string",
+                        "statistic": "AAAAAA",
+                        "sampleSize": "string",
+                        "lod": "string",
+                        "loq": "string",
+                        "numDetects": "string",
+                        "numNonDetects": "string",
+                        "rateDetects": "string",
+                        "detected": 0,
+                        "detectedConflict": 0,
+                        "notesDetects": "string",
+                        "species": "AAAAAA",
+                        "media": "AAAAAA",
+                        "harmonizedMedium": "AAAAAA",
+                        "population": "AAAAAA",
+                        "subPopulation": "string",
+                        "collectionActivityId": "AAAAAA",
+                        "dates": "string",
+                        "years": "string",
+                        "location": "AAAAAA",
+                        "stateOrProvince": "string",
+                        "county": "AAAAAA",
+                        "country": "string",
+                        "qualityFlag": "AAAAAA",
+                        "link": "AAAAAA",
+                        "reference": "AAAAAA",
+                        "version": "string",
+                        "exportDate": "1970-01-01",
+                        "casnumber": "string"}]}
+
+        word = 'soil'
+        mocker.return_value = hit
+
+        expo = ctxpy.Exposure()
+        result = expo.search_mmdb(by='medium',word=word)
+
+        suffix = f"exposure/mmdb/single-sample/by-medium?medium={word}"
+
+        mocker.assert_called_once_with(suffix=suffix)
+        self.assertFramesEqual(left=result,right=pd.DataFrame(hit['data']))
+
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_search_mmdb_by_aggregate(self, mocker):
+        hit = {"medium": "livestock/meat",
+               "totalRecords": 380,
+               "recordsOnPage": 380,
+               "pageNumber": 1,
+               "totalPages": 1,
+               "data":[{"id": 0,
+                        "fullSourceName": "AAAAAA",
+                        "chemicalName": "AAAAAA",
+                        "dtxsid": "AAAAAA",
+                        "preferredName": "AAAAAA",
+                        "casrn": "AAAAAA",
+                        "result": "string",
+                        "units": "AAAAAA",
+                        "cleanedUnits": "string",
+                        "statistic": "AAAAAA",
+                        "sampleSize": "string",
+                        "lod": "string",
+                        "loq": "string",
+                        "numDetects": "string",
+                        "numNonDetects": "string",
+                        "rateDetects": "string",
+                        "detected": 0,
+                        "detectedConflict": 0,
+                        "notesDetects": "string",
+                        "species": "AAAAAA",
+                        "media": "AAAAAA",
+                        "harmonizedMedium": "AAAAAA",
+                        "population": "AAAAAA",
+                        "subPopulation": "string",
+                        "collectionActivityId": "AAAAAA",
+                        "dates": "string",
+                        "years": "string",
+                        "location": "AAAAAA",
+                        "stateOrProvince": "string",
+                        "county": "AAAAAA",
+                        "country": "string",
+                        "qualityFlag": "AAAAAA",
+                        "link": "AAAAAA",
+                        "reference": "AAAAAA",
+                        "version": "string",
+                        "exportDate": "1970-01-01",
+                        "casnumber": "string"}]}
+        word = 'soil'
+        mocker.return_value = hit
+
+        expo = ctxpy.Exposure()
+        result = expo.search_mmdb(by='aggregate',word=word)
+
+        suffix = f"exposure/mmdb/aggregate/by-medium?medium={word}"
+
+        mocker.assert_called_once_with(suffix=suffix)
+        self.assertFramesEqual(left=result,right=pd.DataFrame(hit['data']))
+
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_search_mmdb_by_dtxsid(self, mocker):
+        hit = [{"id": 0,
+                "fullSourceName": "AAAAAA",
+                "chemicalName": "AAAAAA",
+                "dtxsid": "AAAAAA",
+                "preferredName": "AAAAAA",
+                "casrn": "AAAAAA",
+                "result": "AAAAAA",
+                "units": "AAAAAA",
+                "cleanedUnits": "string",
+                "lod": "AAAAAA",
+                "loq": "AAAAAA",
+                "detectionFlag": "AAAAAA",
+                "resultFlag": "AAAAAA",
+                "detected": 0,
+                "detectedConflict": 0,
+                "notesDetects": "string",
+                "species": "AAAAAA",
+                "media": "AAAAAA",
+                "harmonizedMedium": "AAAAAA",
+                "method": "AAAAAA",
+                "collectionActivityId": "AAAAAA",
+                "sampleId": "AAAAAA",
+                "mmdbSampleId": "string",
+                "dates": "AAAAAA",
+                "year": "AAAA",
+                "month": "AAAA",
+                "time": "string",
+                "location": "AAAAAA",
+                "stateOrProvince": "string",
+                "county": "AAAAAA",
+                "country": "AAAAAA",
+                "qualityFlag": "AAAAAA",
+                "link": "AAAAAA",
+                "reference": "AAAAAA",
+                "version": "string",
+                "exportDate": "1970-01-01",
+                "casnumber": "string"}]
+
+        word = 'DTXSID7020182'
+        mocker.return_value = hit
+
+        expo = ctxpy.Exposure()
+        result = expo.search_mmdb(by='dtxsid',word=word)
+
+        suffix = f"exposure/mmdb/single-sample/by-dtxsid/{word}"
+
+        mocker.assert_called_once_with(suffix=suffix)
+        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+
+    @patch('ctxpy.base.CTXConnection.get')
+    def test_get_mmdb_vocabulary(self,mocker):
+
+        hit = [{"harmonizedMediumDesc": "string",
+                "harmonizedMedium": "string"}]
+
+        mocker.return_value = hit
+
+        expo = ctxpy.Exposure()
+        result = expo.get_mmdb_vocabulary()
+
+        suffix = 'exposure/mmdb/mediums'
+
+        mocker.assert_called_once_with(suffix=suffix)
+        self.assertFramesEqual(left=result,right=pd.DataFrame(result))
 
 
 if __name__ == "__main__":
