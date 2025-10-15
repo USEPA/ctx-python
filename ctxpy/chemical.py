@@ -47,7 +47,7 @@ class Chemical(CTXConnection):
         super().__init__(x_api_key=x_api_key)
 
 
-    def search(self, by: str, word: Union[str, Iterable[str]],
+    def search(self, by: str, query: Union[str, Iterable[str]],
                batch_size: Optional[int]=200):
         """
         Search for chemical(s) using chemical identifiers via CCTE's APIs.
@@ -65,14 +65,14 @@ class Chemical(CTXConnection):
             The type of search method to use. Options are "equals", "contains",
             "starts-with", or "batch".
 
-        word : string or list-like
+        query : string or list-like
             If string, the single chemical identifer (or part of the identifier)
             to search for. If list-list, a list or other iterable of identifiers to 
             search for.
 
         batch_size: 200
             If `by` argument is "batch", then only 200 DTXSIDs may be submitted as the
-            `word` argument. If more than 200 are submitted, then the request is 
+            `query` argument. If more than 200 are submitted, then the request is 
             chunked into batches of `batch_size`. If `by` argument is any other option 
             than `batch` this argument is ignored.
 
@@ -97,7 +97,7 @@ class Chemical(CTXConnection):
 
         Search for a chemical by name:
 
-        >>> chem.search(by='equals',word='toluene')
+        >>> chem.search(by='equals',query='toluene')
 
         [{'dtxsid': 'DTXSID7021360',
           'dtxcid': 'DTXCID501360',
@@ -110,7 +110,7 @@ class Chemical(CTXConnection):
           'smiles': 'CC1=CC=CC=C1',
           'isMarkush': False}]
 
-        >>> chem.search(by='starts-with',word='atra')
+        >>> chem.search(by='starts-with',query='atra')
 
         [{'dtxsid': 'DTXSID7021239',
           'dtxcid': 'DTXCID001239',
@@ -134,7 +134,7 @@ class Chemical(CTXConnection):
           'isMarkush': True},
           ...]
 
-        >>> chem.search(by='contains',word='-00-')
+        >>> chem.search(by='contains',query='-00-')
         [{'dtxsid': 'DTXSID001000057',
           'dtxcid': 'DTXCID001427025',
           'casrn': '78812-00-7',
@@ -157,7 +157,7 @@ class Chemical(CTXConnection):
           'isMarkush': True},
           ...]
 
-        >>> chem.search(by='batch',word=['50-00-0','BPA'])
+        >>> chem.search(by='batch',query=['50-00-0','BPA'])
         [{'dtxsid': 'DTXSID7020637',
           'dtxcid': 'DTXCID30637',
           'casrn': '50-00-0',
@@ -196,35 +196,40 @@ class Chemical(CTXConnection):
         if by not in options.keys():
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
 
-        if by == "batch":
-            suffix = f"{self.KIND}/search/{options[by]}/"
-            
-            if not is_list_like(word):
-                raise TypeError(
-                    "Arugment `by` is 'batch', " "but `word` is not an list-type."
-                )
-            if len(word) > batch_size:
+        if (is_list_like(query)) and (by != "batch"):
+            raise NotImplementedError(f"`by` option of '{by}' cannot be used in batch mode.")
 
-                logging.warning(f"{len(word)} words were submitted for searching, this is greater "
-                     f"than the current API limit of {batch_size}. Search will be "
-                     "batched to meet API requirements.")
-
-            ## This is a special wrapper of the CTXConnection `post` method.
-            info = super(Chemical,self).batch(suffix=suffix,
-                                              word=word,
+        endpoint = f"{self.KIND}/search/{options[by]}/"
+        info = super(Chemical, self).ctx_call(endpoint=endpoint,
+                                              query=query,
                                               batch_size=batch_size,
                                               bracketed=False)
+        # if by == "batch":
+            
+        #     if not is_list_like(query):
+        #         raise TypeError(
+        #             "Arugment `by` is 'batch', " "but `query` is not an list-type."
+        #         )
+        #     if len(query) > batch_size:
 
-        else:
-            word = quote(word, safe="")
-            suffix = f"{self.KIND}/search/{options[by]}/{word}"
+        #         logging.warning(f"{len(query)} words were submitted for query, this is greater "
+        #              f"than the current API limit of {batch_size}. Search will be "
+        #              "batched to meet API requirements.")
 
-            info = super(Chemical, self).get(suffix=suffix)
+        #     ## This is a special wrapper of the CTXConnection `post` method.
+        #     info = super(Chemical,self).batch(endpoint=endpoint,
+        #                                       query=query,
+        #                                       batch_size=batch_size,
+        #                                       bracketed=False)
+
+        # else:
+
+        #     info = super(Chemical, self).get(endpoint=endpoint, query=query)
 
         return info
 
-    def details(self, by: str, word: Union[str, Iterable[str]],
-                subset: Optional[str]="all", batch_size:Optional[int]=1000)->list:
+    def details(self, by: str, query: Union[str, Iterable[str]],
+                subset: Optional[str]=None, batch_size:Optional[int]=1000)->list:
         ## TODO: add exactly what each subset returns
         """
         Get detailed information about chemical(s) via CCTE's APIs.
@@ -240,19 +245,20 @@ class Chemical(CTXConnection):
             The type of search method to use. Options are "dtxsid", "dtxcid",
             or "batch".
 
-        word : string or list-like
+        query : string or list-like
             If string, the single chemical identifer (or part of the identifier)
             to search for. If list-like, a list or other iterable of identifiers to 
             search for.
 
         subset: string (optional)
-            If None, then default values are returned from call. If string, then
-            one of six valid subsets of data to call. Options are 'default',
-            'all','details','identifiers', 'structures', and 'nta'.
+            If None, then default values are returned from call; this is equivalent to 
+            specifying the 'all' subset. If string, then one of six valid subsets of 
+            data to call. Options are 'default', 'all','details','identifiers', 
+            'structures', and 'nta'.
 
         batch_size: 1000
             If `by` argument is "batch", then only 1000 DTXSIDs may be submitted as the
-            `word` argument. If more than 1000 are submitted, then the request is 
+            `query` argument. If more than 1000 are submitted, then the request is 
             chunked into batches of `batch_size`. If `by` argument is any other option 
             than `batch` this argument is ignored.
 
@@ -275,7 +281,7 @@ class Chemical(CTXConnection):
         Examples
         --------
         Get details for a single DTXSID
-        >>> chem.details(by='dtxsid', word='DTXSID7020182')
+        >>> chem.details(by='dtxsid', query='DTXSID7020182')
         {'id': '337693',
          'expocatMedianPrediction': '5.50E-05',
          'expocat': 'Y',
@@ -288,7 +294,7 @@ class Chemical(CTXConnection):
 
         Get details for a single DTXCID
 
-        >>> chem.details(by='dtxcid', word='DTXCID701805')
+        >>> chem.details(by='dtxcid', query='DTXCID701805')
         {'id': '1742004',
          'expocatMedianPrediction': '1.89E-06',
          'expocat': 'Y',
@@ -301,7 +307,7 @@ class Chemical(CTXConnection):
 
         Get a details for a batch of chemicals:
 
-        >>> chem.details(by='batch', word=['DTXSID7020182','DTXSID3021805'])
+        >>> chem.details(by='batch', query=['DTXSID7020182','DTXSID3021805'])
         [{'id': '1742004',
           'expocatMedianPrediction': '1.89E-06',
           'expocat': 'Y',
@@ -329,11 +335,15 @@ class Chemical(CTXConnection):
             "batch-dtxcid": "by-dtxcid",
         }
         subset_options = {
+            None: "chemicaldetailall",
             "all": "chemicaldetailall",
             "details": "chemicaldetailstandard",
             "identifiers": "chemicalidentifier",
             "structures": "chemicalstructure",
             "nta": "ntatoolkit",
+            'ccd':'ccdchemicaldetails',
+            'assays': 'ccdassaydetails',
+            'compact':'compact'
         }
 
         if by not in by_options.keys():
@@ -342,52 +352,44 @@ class Chemical(CTXConnection):
         if (subset is not None) and (subset not in subset_options.keys()):
             raise KeyError(f"Value {subset} is invalid option for argument `subset`.")
 
-        if "batch" in by:
+        endpoint = f"{self.KIND}/detail/search/{by_options[by]}/"
+        params = {'projection':subset_options[subset]}
+        info = super(Chemical, self).ctx_call(endpoint=endpoint,
+                                              query=query,
+                                              params=params,
+                                              batch_size=batch_size)
+
+        # if "batch" in by:
             
-            if not is_list_like(word):
-                raise TypeError(
-                    "Arugment `by` is 'batch', " "but `word` is not an list-type."
-                )
-            if subset is None:
-                suffix = f"{self.KIND}/detail/search/{by_options[by]}/"
-            else:
-                suffix = (
-                    f"{self.KIND}/detail/search/{by_options[by]}/"
-                    f"?projection={subset_options[subset]}"
-                )
-            if len(word) > batch_size:
-                logging.warning(f"{len(word)} words were submitted for searching, this is greater "
-                     f"than the current API limit of {batch_size}. Search will be "
-                     "batched to meet API requirements.",stacklevel=1)
-            info = super(Chemical,self).batch(suffix=suffix,
-                                              word=word,
-                                              batch_size=batch_size,
-                                              bracketed=True)
+        #     if not is_list_like(query):
+        #         raise TypeError(
+        #             "Arugment `by` is 'batch', " "but `query` is not an list-type."
+        #         )
+        #     if len(query) > batch_size:
+        #         logging.warning(f"{len(query)} words were submitted for query, this is greater "
+        #              f"than the current API limit of {batch_size}. Search will be "
+        #              "batched to meet API requirements.",stacklevel=1)
+        #     info = super(Chemical,self).batch(endpoint=endpoint,
+        #                                       query=query,
+        #                                       params=params,
+        #                                       batch_size=batch_size,
+        #                                       bracketed=True)
 
-        else:
-            if not isinstance(word, str):
-                raise TypeError(
-                    f"Argument `by` is {by}, " f"but `word` is not string {word}."
-                )
+        # else:
+        #     if not isinstance(query, str):
+        #         raise TypeError(
+        #             f"Argument `by` is {by}, " f"but `query` is not string {query}."
+        #         )
 
-            word = quote(word, safe="")
 
-            if subset is None:
-                suffix = f"{self.KIND}/detail/search/{by_options[by]}/{word}"
-            else:
-                suffix = (
-                    f"{self.KIND}/detail/search/{by_options[by]}/{word}"
-                    f"?projection={subset_options[subset]}"
-                )
-
-            info = super(Chemical, self).get(suffix=suffix)
+        #     info = super(Chemical, self).get(endpoint=endpoint, query=query,params=params)
 
         return info
 
     def msready(
         self,
         by: str,
-        word: Optional[str] = None,
+        query: Optional[str] = None,
         start: Optional[float] = None,
         end: Optional[float] = None,
     ):
@@ -408,7 +410,7 @@ class Chemical(CTXConnection):
             exist within the specific monoisotopic mass range. "formula" returns all
             chemicals having that molecular formula.
 
-        word : Optional[string]
+        query : Optional[string]
             If string, the single chemical identifer (or part of the identifier)
             to search for. If no string is supplied, searching by mass-range is
             assumed
@@ -429,7 +431,7 @@ class Chemical(CTXConnection):
         --------
         Search for chemical(s) by DTXCID:
 
-        >>> chem.msready(by='dtxcid',word='DTXCID30182')
+        >>> chem.msready(by='dtxcid',query='DTXCID30182')
 
         ['DTXSID0027480',
          'DTXSID00584370',
@@ -441,7 +443,7 @@ class Chemical(CTXConnection):
 
         Search for chemical(s) by molecular formula:
 
-        >>> chem.msready(by='formula', word='C17H19NO3')
+        >>> chem.msready(by='formula', query='C17H19NO3')
         ['DTXSID001016149',
          'DTXSID001165714',
          'DTXSID001178945',
@@ -461,8 +463,14 @@ class Chemical(CTXConnection):
          ...]
         """
 
-        if (word is None) and (by != "mass"):
-            raise ValueError("No search term provided to `word` argument.")
+        options = {
+            "dtxcid": "by-dtxcid",
+            "mass": "by-mass",
+            "formula": "by-formula",
+        }
+
+        if (not isinstance(query,str)) and (by != "mass"):
+            raise ValueError("No search term provided to `query` argument.")
 
         if ((start is None) or (end is None)) and (by == "mass"):
             raise ValueError(
@@ -470,36 +478,14 @@ class Chemical(CTXConnection):
                 "provided start and end of range."
             )
 
-        options = {
-            "dtxcid": "by-dtxcid",
-            "mass": "by-mass",
-            "formula": "by-formula",
-        }
-
         if by not in options.keys():
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
 
+        endpoint = f"{self.KIND}/msready/search/{options[by]}/"
+        
         if by == "mass":
-            if (start is None) or (end is None):
-                raise ValueError(
-                    "Argument `by` is 'mass', but no `start` or "
-                    "`end` mass values are provided."
-                )
+            query = f"{start}/{end}"
 
-            word = f"{start}/{end}"
-            suffix = f"{self.KIND}/msready/search/{options[by]}/{word}"
-
-        else:
-            word = quote(word, safe="")
-            suffix = f"{self.KIND}/msready/search/{options[by]}/{word}"
-
-            if not isinstance(word, str):
-                raise TypeError(f"Argument `by` is {by}, " "but `word` is not string.")
-
-        ## TODO: test that this works for mass -- does safe quote mess
-        ## with the floats?
-        word = quote(word, safe="")
-
-        info = super(Chemical, self).get(suffix=suffix)
+        info = super(Chemical, self).ctx_call(endpoint=endpoint, query=query)
 
         return info
