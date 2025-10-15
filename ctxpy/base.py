@@ -1,11 +1,12 @@
 import json
 import warnings
 from pathlib import Path
-from typing import Optional, Union, Iterable
+from typing import Optional, Union, Iterable, Callable
 
 import pandas as pd
 import requests
 from urllib.parse import quote
+from pandas.api.types import is_list_like
 
 from .utils import read_env, chunker
 
@@ -52,11 +53,10 @@ class CTXConnection:
             self.host = config["ctx_api_host"]
             self.headers = {"accept":config['ctx_api_accept'],
                             "x-api-key":config['ctx_api_x_api_key']}
-
-
+    
     def _format_post_query(self,query:str, bracketed:bool=True):
         
-        query = query = [quote(q, safe="") for q in query]
+        query = [quote(q, safe="") for q in query]
         if bracketed:
             query = '["' + '","'.join(query) + '"]'
         else:
@@ -64,20 +64,33 @@ class CTXConnection:
             query = "\n".join(query)
         return query
 
-    def _request(self, endpoint: str, query: Optional[str]=None,
-                params: Optional[dict]=None, bracketed:bool=True):
 
+    def _get_request_method(self,query):
         ## Get request type and format query
-        if pd.api.types.is_list_like(query):
-            method='POST'
-            query = self._format_post_query(query=query, bracketed=bracketed)
-            self.headers = {**self.headers, **{"content-type":"application/json"}}
+        if (is_list_like(query)) and (not isinstance(query,dict)):
+            method = 'POST'
         elif isinstance(query,str):
             method = "GET"
-            query = quote(query, safe="")
+        elif isinstance(query,dict):
+            method = 'GET'
+        elif query is None:
+            method = "GET"
         else:
-            raise TypeError("Expected 'query' to be type `str`, "
+            raise TypeError("Expected 'query' to be type `str`, `list`, or `None`"
                             f"but is {type(query).__name__} instead.")
+        return method
+
+    def _get_quoted_query(self,query,quote_method='default', bracketed=True):
+        if quote_method == "default":
+            if is_list_like(query):
+                query = self._format_post_query(query=query, bracketed=bracketed)
+            elif isinstance(query,str):
+                query = quote(query,safe="")
+        elif callable(quote_method):
+            query = quote_method(query)
+        return query
+
+    def _get_url_and_data(self,method:str, endpoint:str, query:Optional[str]=None):
 
         ## Construct URL
         if query is not None:
@@ -90,7 +103,20 @@ class CTXConnection:
         else:
             url = f'{self.host}{endpoint}'
             data = None
+        return url, data
+        
 
+    def _request(self, endpoint: str, query: Optional[str]=None,
+                 params: Optional[dict]=None, bracketed:bool=True,
+                 quote_method: Union[str, Callable]='default'):
+
+        method = self._get_request_method(query=query)
+        query = self._get_quoted_query(query=query,
+                                       quote_method=quote_method,
+                                       bracketed=bracketed)
+        url, data = self._get_url_and_data(method=method,
+                                           endpoint=endpoint,
+                                           query=query)
         
         ## Try the request, raise errors if there are any
         try:
@@ -103,93 +129,13 @@ class CTXConnection:
         except requests.exceptions.RequestException as err:
             raise err
 
-
+        print(self.response.url)
         try:
             info = json.loads(self.response.content.decode("utf-8"))
         except json.JSONDecodeError as err:
             raise err
 
         return info
-
-    # def get(self, endpoint: str, query: Optional[str]=None, params: Optional[dict]=None):
-    #     """
-    #     Request informaiton via API call
-        
-    #     Paramters
-    #     ---------
-    #     suffix : string
-    #         the suffix of the API call that will determine what is searched for and how
-        
-    #     Returns
-    #     -------
-    #     dict, JSON information that was requested in the API call
-    #     """
-    #     if query is not None:
-    #         url = f'{self.host}{endpoint}{quote(query, safe="")}'
-    #     else:
-    #         url = f'{self.host}{endpoint}'
-        
-    #     try:
-    #         self.response = requests.request(method='GET',
-    #                                          url=url,
-    #                                          headers=self.headers,
-    #                                          params=params)
-    #     except Exception as e:
-    #         raise e
-    #     # print(self.response.content)
-    #     print(self.response.status_code)
-    #     try:
-    #         info = json.loads(self.response.content.decode("utf-8"))
-    #     except json.JSONDecodeError as e:
-    #         raise e
-
-    #     return info
-
-    # def post(self, endpoint: str, query: str, bracketed:bool, params: Optional[dict]=None):
-    #     """
-    #     Request information via API call, but also supply stipulations on subsets or
-    #     specific aspects of returned information
-        
-    #     Paramters
-    #     ---------
-    #     endpoint : string
-    #         the suffix of the API call that will determine what is searched for and how
-
-    #     query : string
-    #         extra data passed to the API call; used by batch search calls
-
-    #     Returns
-    #     -------
-    #     dict, JSON information that was requested in the API call
-    #     """
-    #     ## POSTs only happen with a list of data, which is why this should work.
-    #     ## If that ever changes, I'd need to check that `word` is a list-like first
-    #     if bracketed:
-    #         ## '["DTXSID001", "DTXSID002"]'
-    #         query = [quote(q, safe="") for q in query]
-    #         query = '["' + '","'.join(query) + '"]'
-    #     else:
-    #         ## '"DTXSID001"\n"DTXSID002"'
-    #         query = "\n".join([quote(q, safe="") for q in query])
-
-    #     try:
-    #         self.headers = {**self.headers, **{"content-type": "application/json"}}
-    #         self.response = requests.request(method='POST',
-    #                                          url=f"{self.host}{endpoint}",
-    #                                          headers=self.headers,
-    #                                          data=query,
-    #                                          params=params)
-    #     except Exception as e:
-    #         ## TODO: make this a more informative error message
-    #         raise SystemError(e)
-
-    #     try:
-    #         info = json.loads(self.response.content.decode("utf-8"))
-    #     except json.JSONDecodeError as e:
-    #         ## TODO: make this a more informative error message
-    #         raise SystemError(e)
-
-    #     return info
     
     def _batch(self, endpoint: str, query: Iterable[str], batch_size: int, bracketed:bool=True):
         """
@@ -213,20 +159,23 @@ class CTXConnection:
 
     def ctx_call(self, endpoint:str, query:Optional[str]=None,
                  params:Optional[dict]=None, bracketed:bool=True,
-                 batched:bool=False, batch_size:int=200):
+                 batched:bool=False, batch_size:int=200,
+                 quote_method='default'):
 
         if batched:
             info = self._batch(endpoint=endpoint, query=query, params=params,
-                               bracketed=bracketed, batch_size=batch_size)
+                               bracketed=bracketed, batch_size=batch_size,
+                               quote_method=quote_method)
         else:
             if (pd.api.types.is_list_like(query)) and (len(query) > batch_size):
                 warnings.warn("Length of query's iterable is larger than `batch_size`, "
                               "performing batched search.")
                 info = self._batch(endpoint=endpoint, query=query, params=params,
-                                bracketed=bracketed, batch_size=batch_size)
+                                   bracketed=bracketed, batch_size=batch_size,
+                                   quote_method=quote_method)
                 
             info = self._request(endpoint=endpoint, query=query, params=params,
-                                 bracketed=bracketed)
+                                 bracketed=bracketed, quote_method=quote_method)
         return info
 
 
