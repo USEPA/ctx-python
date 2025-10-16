@@ -1,16 +1,12 @@
-name: Release
+name: Test-Release
 
 on:
   push:
-    branches: [ "dev" ]
-#   push:
-#     tags:
-#       # Publish on any tag starting with a `v`, e.g., v1.2.3
-#       - v*
+    branches: [ "staging" ]
 
 jobs:
   pypi:
-    name: Publish to PyPI
+    name: Publish to Test PyPI
     runs-on: ubuntu-latest
     # Environment and permissions trusted publishing.
     environment:
