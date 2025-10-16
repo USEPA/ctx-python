@@ -1,23 +1,25 @@
-name: poetry-deploy
+# name: poetry-deploy
 
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+# # This workflow uses actions that are not certified by GitHub.
+# # They are provided by a third-party and are governed by
+# # separate terms of service, privacy policy, and support
+# # documentation.
 
-on:
-  push:
-    branches: [ "main" ]
+# on:
+#   push:
+#     branches: [ "main" ]
 
-jobs:
-  deploy-package:
-    runs-on: ubuntu-latest
+# jobs:
+#   deploy-package:
+#     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v3
 
-      - name: Build and publish to pypi
-        uses: JRubics/poetry-publish@v2.0
-        with:
-          pypi_token: ${{ secrets.PYPI_TOKEN }}
+#       - name: Build and publish to pypi
+#         uses: JRubics/poetry-publish@v2.0
+#         with:
+#           pypi_token: ${{ secrets.PYPI_TOKEN }}
+#           repository_name: "pypi"
+#           repository_url: "https://pypi.org/"
