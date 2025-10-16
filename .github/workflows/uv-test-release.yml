@@ -29,4 +29,4 @@ jobs:
       - name: Build
         run: uv build
       - name: Publish
-        run: uv publish --publish-url https://test.pypi.org/legacy --check-url https://test.pypi.org/legacy --verbose 
+        run: uv publish --publish-url https://test.pypi.org/legacy --verbose 
