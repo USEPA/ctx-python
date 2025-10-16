@@ -122,11 +122,12 @@ class ChemicalList(CTXConnection):
                                                  params=params)
         return info
 
+    
+    def _join_query(query: dict):
+        query = {k:quote(v, safe="") for k,v in query.items()}
+        return f"{query['list']}/{query['word']}"
 
     def filter_list_by_chemicals(self, list_name:str, chem_filter:str, how:str):
-        def join_query(query: dict):
-            query = {k:quote(v, safe="") for k,v in query.items()}
-            return f"{query['list']}/{query['word']}"
 
         options = {"contains":"contain",
                    "equals":"equal",
@@ -137,7 +138,7 @@ class ChemicalList(CTXConnection):
         endpoint = f"{self.KIND}/chemicals/search/{options[how]}/"
         info = super(ChemicalList, self).ctx_call(endpoint=endpoint,
                                                   query=query,
-                                                  quote_method=join_query)
+                                                  quote_method=self._join_query)
         return info
 
 
@@ -167,10 +168,8 @@ class ChemicalList(CTXConnection):
 
         """
 
-        query = quote(list_name.upper(), safe="")
-
         endpoint = f"{self.KIND}/chemicals/search/by-listname/"
-        info = super(ChemicalList, self).ctx_call(endpoint=endpoint,query=query)
+        info = super(ChemicalList, self).ctx_call(endpoint=endpoint,query=list_name)
 
         return info
 
