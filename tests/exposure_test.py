@@ -17,7 +17,7 @@ class TestExposure(unittest.TestCase, CustomAssertions):
     https://comptox.epa.gov/ctx-api/docs/exposure.html
     """
 
-    @patch('ctxpy.base.CTXConnection.batch')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_search_cpdat_fc_batch(self, mocker):
 
         hit = [{"id": 0,
@@ -37,15 +37,15 @@ class TestExposure(unittest.TestCase, CustomAssertions):
         expo = ctxpy.Exposure()
         result = expo.search_cpdat(vocab_name='fc', dtxsid=dtxsid)
 
-        suffix = 'exposure/functional-use/search/by-dtxsid/'
+        endpoint = 'exposure/functional-use/search/by-dtxsid/'
         # Assertions to verify the behavior
-        mocker.assert_called_once_with(suffix=suffix,
-                                       word=dtxsid,
+        mocker.assert_called_once_with(endpoint=endpoint,
+                                       query=dtxsid,
                                        batch_size=200,
                                        bracketed=True)
         self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_search_cpdat_fc_serial(self, mocker):
 
         hit = [{"id": 0,
@@ -65,14 +65,17 @@ class TestExposure(unittest.TestCase, CustomAssertions):
         expo = ctxpy.Exposure()
         result = expo.search_cpdat(vocab_name='fc',dtxsid=dtxsid)
 
-        suffix = f"exposure/functional-use/search/by-dtxsid/{dtxsid}"
+        endpoint = "exposure/functional-use/search/by-dtxsid/"
 
         # Assertions to verify the behavior
-        mocker.assert_called_once_with(suffix=suffix)
+        mocker.assert_called_once_with(endpoint=endpoint,
+                                       query=dtxsid,
+                                       batch_size=200,
+                                       bracketed=True)
         self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.get')
-    def test_search_qsurs_serial(self,mocker):
+    @patch('ctxpy.base.CTXConnection.ctx_call')
+    def test_search_qsurs_serial(self, mocker):
 
         hit = [{"dtxsid": "string",
                 "harmonizedFunctionalUse": "string",
@@ -85,14 +88,13 @@ class TestExposure(unittest.TestCase, CustomAssertions):
         expo = ctxpy.Exposure()
         result = expo.search_qsurs(dtxsid=dtxsid)
 
-        suffix = f"exposure/functional-use/probability/search/by-dtxsid/{dtxsid}"
+        endpoint = "exposure/functional-use/probability/search/by-dtxsid/"
         
-        mocker.assert_called_once_with(suffix=suffix)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid)
         self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
         
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_get_cpdat_vocabulary_fc(self, mocker):
 
         hit = [{"id": 0,
@@ -105,13 +107,13 @@ class TestExposure(unittest.TestCase, CustomAssertions):
         expo = ctxpy.Exposure()
         result = expo.get_cpdat_vocabulary(vocab_name='fc')
 
-        suffix = 'exposure/functional-use/category'
+        endpoint = 'exposure/functional-use/category'
 
         # Assertions to verify the behavior
-        mocker.assert_called_once_with(suffix=suffix)
+        mocker.assert_called_once_with(endpoint=endpoint)
         self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_search_cpdat_puc_serial(self, mocker):
 
         hit = [{"id": 0,
@@ -142,12 +144,15 @@ class TestExposure(unittest.TestCase, CustomAssertions):
         expo = ctxpy.Exposure()
         result = expo.search_cpdat(vocab_name='puc',dtxsid=dtxsid)
 
-        suffix = f'exposure/product-data/search/by-dtxsid/{dtxsid}'
+        endpoint = 'exposure/product-data/search/by-dtxsid/'
         # Assertions to verify the behavior
-        mocker.assert_called_once_with(suffix=suffix)
+        mocker.assert_called_once_with(endpoint=endpoint,
+                                       query=dtxsid,
+                                       batch_size=200,
+                                       bracketed=True)
         self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.batch')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_search_cpdat_puc_batch(self, mocker):
 
         hit = [{"id": 0,
@@ -178,15 +183,15 @@ class TestExposure(unittest.TestCase, CustomAssertions):
         expo = ctxpy.Exposure()
         result = expo.search_cpdat(vocab_name='puc',dtxsid=dtxsid)
 
-        suffix = 'exposure/product-data/search/by-dtxsid/'
+        endpoint = 'exposure/product-data/search/by-dtxsid/'
         # Assertions to verify the behavior
-        mocker.assert_called_once_with(suffix=suffix,
-                                       word=dtxsid,
+        mocker.assert_called_once_with(endpoint=endpoint,
+                                       query=dtxsid,
                                        batch_size=200,
                                        bracketed=True)
         self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_get_cpdat_vocabulary_puc(self,mocker):
         hit = [{"id": 0,
                 "kindName": "AAAAAA",
@@ -200,13 +205,12 @@ class TestExposure(unittest.TestCase, CustomAssertions):
         expo = ctxpy.Exposure()
         result = expo.get_cpdat_vocabulary(vocab_name='puc')
 
-        suffix = 'exposure/product-data/puc'
+        endpoint = 'exposure/product-data/puc'
 
-        mocker.assert_called_once_with(suffix=suffix)
+        mocker.assert_called_once_with(endpoint=endpoint)
         self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
-        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_search_cpdat_lpk_serial(self, mocker):
 
         hit = [{"id": 0,
@@ -229,12 +233,15 @@ class TestExposure(unittest.TestCase, CustomAssertions):
         expo = ctxpy.Exposure()
         result = expo.search_cpdat(vocab_name='lpk',dtxsid=dtxsid)
 
-        suffix = f'exposure/list-presence/search/by-dtxsid/{dtxsid}'
+        endpoint = 'exposure/list-presence/search/by-dtxsid/'
         # Assertions to verify the behavior
-        mocker.assert_called_once_with(suffix=suffix)
+        mocker.assert_called_once_with(endpoint=endpoint,
+                                       query=dtxsid,
+                                       batch_size=200,
+                                       bracketed=True)
         self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.batch')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_search_cpdat_lpk_batch(self, mocker):
 
         hit = [{"id": 0,
@@ -257,15 +264,15 @@ class TestExposure(unittest.TestCase, CustomAssertions):
         expo = ctxpy.Exposure()
         result = expo.search_cpdat(vocab_name='lpk',dtxsid=dtxsid)
 
-        suffix = 'exposure/list-presence/search/by-dtxsid/'
+        endpoint = 'exposure/list-presence/search/by-dtxsid/'
         # Assertions to verify the behavior
-        mocker.assert_called_once_with(suffix=suffix,
-                                       word=dtxsid,
+        mocker.assert_called_once_with(endpoint=endpoint,
+                                       query=dtxsid,
                                        batch_size=200,
                                        bracketed=True)
         self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_get_cpdat_vocabulary_lpk(self,mocker):
         hit = [{"id": 0,
                 "tagName": "AAAAAA",
@@ -277,12 +284,12 @@ class TestExposure(unittest.TestCase, CustomAssertions):
         expo = ctxpy.Exposure()
         result = expo.get_cpdat_vocabulary(vocab_name='lpk')
 
-        suffix = 'exposure/list-presence/tags'
+        endpoint = 'exposure/list-presence/tags'
 
-        mocker.assert_called_once_with(suffix=suffix)
+        mocker.assert_called_once_with(endpoint=endpoint)
         self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.batch')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_search_httk_batch(self, mocker):
         hit = [{"id": 0,
                 "dtxsid": "AAAAAA",
@@ -306,15 +313,13 @@ class TestExposure(unittest.TestCase, CustomAssertions):
         expo = ctxpy.Exposure()
         result = expo.search_httk(dtxsid=dtxsid)
 
-        suffix = 'exposure/httk/search/by-dtxsid/'
+        endpoint = 'exposure/httk/search/by-dtxsid/'
         # Assertions to verify the behavior
-        mocker.assert_called_once_with(suffix=suffix,
-                                       word=dtxsid,
-                                       batch_size=200,
-                                       bracketed=True)
+        mocker.assert_called_once_with(endpoint=endpoint,
+                                       query=dtxsid)
         self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_search_httk_serial(self, mocker):
         hit = [{"id": 0,
                 "dtxsid": "AAAAAA",
@@ -338,12 +343,12 @@ class TestExposure(unittest.TestCase, CustomAssertions):
         expo = ctxpy.Exposure()
         result = expo.search_httk(dtxsid=dtxsid)
 
-        suffix = f'exposure/httk/search/by-dtxsid/{dtxsid}'
+        endpoint = 'exposure/httk/search/by-dtxsid/'
 
-        mocker.assert_called_once_with(suffix=suffix)
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid)
         self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.batch')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_search_pathways_exposures_batch(self,mocker):
         hit = [{"dtxsid": "AAAAAA",
                 "productionVolume": 0,
@@ -360,16 +365,14 @@ class TestExposure(unittest.TestCase, CustomAssertions):
         expo = ctxpy.Exposure()
         result = expo.search_exposures(by='pathways',dtxsid=dtxsid)
 
-        suffix = 'exposure/seem/general/search/by-dtxsid/'
+        endpoint = 'exposure/seem/general/search/by-dtxsid/'
 
-        mocker.assert_called_once_with(suffix=suffix,
-                                       word=dtxsid,
-                                       batch_size=200,
-                                       bracketed=True)
+        mocker.assert_called_once_with(endpoint=endpoint,
+                                       query=dtxsid)
         self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
         self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_search_pathways_exposures_serial(self,mocker):
         hit = [{"dtxsid": "AAAAAA",
                 "productionVolume": 0,
@@ -386,12 +389,12 @@ class TestExposure(unittest.TestCase, CustomAssertions):
         expo = ctxpy.Exposure()
         result = expo.search_exposures(by='pathways',dtxsid=dtxsid)
 
-        suffix = f'exposure/seem/general/search/by-dtxsid/{dtxsid}'
+        endpoint = 'exposure/seem/general/search/by-dtxsid/'
 
-        mocker.assert_called_once_with(suffix=suffix)
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid)
         self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.batch')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_search_seem_exposures_batch(self,mocker):
         hit = [{"dtxsid": "AAAAAA",
                 "productionVolume": 0,
@@ -408,15 +411,13 @@ class TestExposure(unittest.TestCase, CustomAssertions):
         expo = ctxpy.Exposure()
         result = expo.search_exposures(by='seem',dtxsid=dtxsid)
 
-        suffix = 'exposure/seem/demographic/search/by-dtxsid/'
+        endpoint = 'exposure/seem/demographic/search/by-dtxsid/'
 
-        mocker.assert_called_once_with(suffix=suffix,
-                                       word=dtxsid,
-                                       batch_size=200,
-                                       bracketed=True)
+        mocker.assert_called_once_with(endpoint=endpoint,
+                                       query=dtxsid)
         self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_search_seem_exposures_serial(self,mocker):
         hit = [{"dtxsid": "AAAAAA",
                 "productionVolume": 0,
@@ -433,12 +434,12 @@ class TestExposure(unittest.TestCase, CustomAssertions):
         expo = ctxpy.Exposure()
         result = expo.search_exposures(by='seem',dtxsid=dtxsid)
 
-        suffix = f'exposure/seem/demographic/search/by-dtxsid/{dtxsid}'
+        endpoint = 'exposure/seem/demographic/search/by-dtxsid/'
 
-        mocker.assert_called_once_with(suffix=suffix)
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid)
         self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_search_mmdb_by_medium(self, mocker):
         hit = {"medium": "livestock/meat",
                "totalRecords": 380,
@@ -483,18 +484,19 @@ class TestExposure(unittest.TestCase, CustomAssertions):
                         "exportDate": "1970-01-01",
                         "casnumber": "string"}]}
 
-        word = 'soil'
+        query = 'soil'
         mocker.return_value = hit
 
         expo = ctxpy.Exposure()
-        result = expo.search_mmdb(by='medium',word=word)
+        result = expo.search_mmdb(by='medium',query=query)
 
-        suffix = f"exposure/mmdb/single-sample/by-medium?medium={word}"
+        endpoint = "exposure/mmdb/single-sample/by-medium"
+        params = {"medium":query}
 
-        mocker.assert_called_once_with(suffix=suffix)
+        mocker.assert_called_once_with(endpoint=endpoint, query=query, params=params)
         self.assertFramesEqual(left=result,right=pd.DataFrame(hit['data']))
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_search_mmdb_by_aggregate(self, mocker):
         hit = {"medium": "livestock/meat",
                "totalRecords": 380,
@@ -538,18 +540,19 @@ class TestExposure(unittest.TestCase, CustomAssertions):
                         "version": "string",
                         "exportDate": "1970-01-01",
                         "casnumber": "string"}]}
-        word = 'soil'
+        query = 'soil'
         mocker.return_value = hit
 
         expo = ctxpy.Exposure()
-        result = expo.search_mmdb(by='aggregate',word=word)
+        result = expo.search_mmdb(by='aggregate',query=query)
 
-        suffix = f"exposure/mmdb/aggregate/by-medium?medium={word}"
+        endpoint = "exposure/mmdb/aggregate/by-medium"
+        params = {"medium":query}
 
-        mocker.assert_called_once_with(suffix=suffix)
+        mocker.assert_called_once_with(endpoint=endpoint, query=query, params=params)
         self.assertFramesEqual(left=result,right=pd.DataFrame(hit['data']))
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_search_mmdb_by_dtxsid(self, mocker):
         hit = [{"id": 0,
                 "fullSourceName": "AAAAAA",
@@ -589,18 +592,18 @@ class TestExposure(unittest.TestCase, CustomAssertions):
                 "exportDate": "1970-01-01",
                 "casnumber": "string"}]
 
-        word = 'DTXSID7020182'
+        dtxsid = 'DTXSID7020182'
         mocker.return_value = hit
 
         expo = ctxpy.Exposure()
-        result = expo.search_mmdb(by='dtxsid',word=word)
+        result = expo.search_mmdb(by='dtxsid',query=dtxsid)
 
-        suffix = f"exposure/mmdb/single-sample/by-dtxsid/{word}"
+        endpoint = "exposure/mmdb/single-sample/by-dtxsid/"
 
-        mocker.assert_called_once_with(suffix=suffix)
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid, params=None)
         self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_get_mmdb_vocabulary(self,mocker):
 
         hit = [{"harmonizedMediumDesc": "string",
@@ -611,9 +614,9 @@ class TestExposure(unittest.TestCase, CustomAssertions):
         expo = ctxpy.Exposure()
         result = expo.get_mmdb_vocabulary()
 
-        suffix = 'exposure/mmdb/mediums'
+        endpoint = 'exposure/mmdb/mediums'
 
-        mocker.assert_called_once_with(suffix=suffix)
+        mocker.assert_called_once_with(endpoint=endpoint)
         self.assertFramesEqual(left=result,right=pd.DataFrame(result))
 
 

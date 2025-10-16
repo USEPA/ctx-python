@@ -5,36 +5,45 @@ import ctxpy
 class TestChemical(unittest.TestCase):
 
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_search_equals(self, mocker):
         # Mock the response from the get method
         mocker.return_value = [{'dtxsid': 'DTXSID7021360',
                                 'preferredName': 'Toluene'}]
 
+        chemical = 'toluene'
         chem = ctxpy.Chemical()
-        result = chem.search(by='equals', word='toluene')
+        result = chem.search(by='equals', query=chemical)
 
         # Assertions to verify the behavior
-        mocker.assert_called_once_with(suffix='chemical/search/equal/toluene')
+        mocker.assert_called_once_with(endpoint='chemical/search/equal/',
+                                       query=chemical,
+                                       batch_size=200,
+                                       bracketed=False)
         self.assertEqual(result, [{'dtxsid': 'DTXSID7021360',
                                    'preferredName': 'Toluene'}])
 
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_search_starts_with(self, mocker):
         # Mock the response from the get method
-        mocker.return_value = [{'dtxsid': 'DTXSID7021360', 'preferredName': 'Toluene'}]
+        mocker.return_value = [{'dtxsid': 'DTXSID7021360',
+                                'preferredName': 'Toluene'}]
 
+        chemical = 'toluene'
         chem = ctxpy.Chemical()
-        result = chem.search(by='starts-with', word='toluene')
+        result = chem.search(by='starts-with', query=chemical)
 
         # Assertions to verify the behavior
-        mocker.assert_called_once_with(suffix='chemical/search/start-with/toluene')
+        mocker.assert_called_once_with(endpoint='chemical/search/start-with/',
+                                       query=chemical,
+                                       batch_size=200,
+                                       bracketed=False)
         self.assertEqual(result, [{'dtxsid': 'DTXSID7021360',
                                    'preferredName': 'Toluene'}])
 
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_search_contains(self, mocker):
         hit = [{'dtxsid': 'DTXSID001009823',
                 'preferredName': 'Balsams, tolu'},
@@ -51,14 +60,18 @@ class TestChemical(unittest.TestCase):
         # Mock the response from the get method
         mocker.return_value = hit
 
+        chemical = 'toluene'
         chem = ctxpy.Chemical()
-        result = chem.search(by='contains', word='toluene')
+        result = chem.search(by='contains', query=chemical)
 
         # Assertions to verify the behavior
-        mocker.assert_called_once_with(suffix='chemical/search/contain/toluene')
+        mocker.assert_called_once_with(endpoint='chemical/search/contain/',
+                                       query=chemical,
+                                       batch_size=200,
+                                       bracketed=False)
         self.assertEqual(result, hit)
 
-    @patch('ctxpy.base.CTXConnection.batch')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_search_batch_greater_than_batch_size(self, mocker):
         hit = [{'dtxsid': 'DTXSID7021360',
                 'preferredName': 'Toluene'},
@@ -67,21 +80,21 @@ class TestChemical(unittest.TestCase):
         # Mock the response from the get method
         mocker.return_value = hit
 
+        dtxsid = ['DTXSID7021360', 'DTXSID001009823']
         chem = ctxpy.Chemical()
         result = chem.search(by='batch',
-                             word=['DTXSID7021360', 'DTXSID001009823'],
+                             query=dtxsid,
                              batch_size=1)
 
         # Assertions to verify the behavior
-        mocker.assert_called_once_with(suffix='chemical/search/equal/',
-                                       word=['DTXSID7021360',
-                                             'DTXSID001009823'],
+        mocker.assert_called_once_with(endpoint='chemical/search/equal/',
+                                       query=dtxsid,
                                        batch_size=1,
                                        bracketed=False)
         self.assertEqual(result, hit)
 
 
-    @patch('ctxpy.base.CTXConnection.batch')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_search_batch_less_than_batch_size(self, mocker):
         hit = [{'dtxsid': 'DTXSID7021360',
                 'preferredName': 'Toluene'},
@@ -90,19 +103,19 @@ class TestChemical(unittest.TestCase):
         # Mock the response from the get method
         mocker.return_value = hit
 
+        dtxsid = ['DTXSID7021360', 'DTXSID001009823']
         chem = ctxpy.Chemical()
         result = chem.search(by='batch',
-                             word=['DTXSID7021360',
-                                   'DTXSID001009823'])
+                             query=dtxsid)
 
         # Assertions to verify the behavior
-        mocker.assert_called_once_with(suffix='chemical/search/equal/',
-                                       word=['DTXSID7021360','DTXSID001009823'],
+        mocker.assert_called_once_with(endpoint='chemical/search/equal/',
+                                       query=dtxsid,
                                        batch_size=200,
                                        bracketed=False)
         self.assertEqual(result, hit)
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_details_dtxsid_no_subset(self,mocker):
         hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
                'dtxsid': 'DTXSID7021360',
@@ -111,13 +124,18 @@ class TestChemical(unittest.TestCase):
 
         mocker.return_value = hit
 
+        dtxsid = 'DTXSID7021360'
+        params = {"projection":"chemicaldetailall"}
         chem = ctxpy.Chemical()
-        result = chem.details(by='dtxsid',word='DTXSID7021360',subset=None)
+        result = chem.details(by='dtxsid',query=dtxsid,subset=None)
 
-        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxsid/DTXSID7021360')
+        mocker.assert_called_once_with(endpoint='chemical/detail/search/by-dtxsid/',
+                                       query=dtxsid,
+                                       params=params,
+                                       batch_size=1000)
         self.assertEqual(result, hit)
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_details_dtxsid_nta_subset(self,mocker):
         hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
                'dtxsid': 'DTXSID7021360',
@@ -125,13 +143,18 @@ class TestChemical(unittest.TestCase):
                'preferredName': 'Toluene'}
         mocker.return_value = hit
 
+        dtxsid = 'DTXSID7021360'
+        params = {"projection":"ntatoolkit"}
         chem = ctxpy.Chemical()
-        result = chem.details(by='dtxsid',word='DTXSID7021360',subset='nta')
+        result = chem.details(by='dtxsid',query=dtxsid,subset='nta')
 
-        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxsid/DTXSID7021360?projection=ntatoolkit')
+        mocker.assert_called_once_with(endpoint='chemical/detail/search/by-dtxsid/',
+                                       query=dtxsid,
+                                       params=params,
+                                       batch_size=1000)
         self.assertEqual(result, hit)
 
-    @patch('ctxpy.base.CTXConnection.batch')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_details_dtxsid_batch_less_than_batch_size_no_subset(self,mocker):
         hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
                'dtxsid': 'DTXSID7021360',
@@ -139,18 +162,20 @@ class TestChemical(unittest.TestCase):
                'preferredName': 'Toluene'}
         mocker.return_value = hit
 
+        dtxsid = ['DTXSID7021360', 'DTXSID001009823']
+        params = {"projection":"chemicaldetailall"}
         chem = ctxpy.Chemical()
         result = chem.details(by='batch-dtxsid',
-                              word=['DTXSID7021360', 'DTXSID001009823'],
+                              query=dtxsid,
                               subset=None)
 
-        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxsid/',
-                                       word=["DTXSID7021360","DTXSID001009823"],
-                                       batch_size=1000,
-                                       bracketed=True)
+        mocker.assert_called_once_with(endpoint='chemical/detail/search/by-dtxsid/',
+                                       query=dtxsid,
+                                       params=params,
+                                       batch_size=1000)
         self.assertEqual(result, hit)
 
-    @patch('ctxpy.base.CTXConnection.batch')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_details_dtxsid_batch_less_than_batch_size_nta_subset(self,mocker):
         hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
                'dtxsid': 'DTXSID7021360',
@@ -158,18 +183,20 @@ class TestChemical(unittest.TestCase):
                'preferredName': 'Toluene'}
         mocker.return_value = hit
 
+        dtxsid = ['DTXSID7021360', 'DTXSID001009823']
+        params = {"projection":"ntatoolkit"}
         chem = ctxpy.Chemical()
         result = chem.details(by='batch-dtxsid',
-                              word=['DTXSID7021360', 'DTXSID001009823'],
+                              query=dtxsid,
                               subset='nta')
 
-        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxsid/?projection=ntatoolkit',
-                                       word=["DTXSID7021360","DTXSID001009823"],
-                                       batch_size=1000,
-                                       bracketed=True)
+        mocker.assert_called_once_with(endpoint='chemical/detail/search/by-dtxsid/',
+                                       query=dtxsid,
+                                       params=params,
+                                       batch_size=1000)
         self.assertEqual(result, hit)
 
-    @patch('ctxpy.base.CTXConnection.batch')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_details_dtxsid_batch_greater_than_batch_size_no_subset(self,mocker):
         hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
                'dtxsid': 'DTXSID7021360',
@@ -177,19 +204,21 @@ class TestChemical(unittest.TestCase):
                'preferredName': 'Toluene'}
         mocker.return_value = hit
 
+        dtxsid = ['DTXSID7021360', 'DTXSID001009823']
+        params = {"projection":"chemicaldetailall"}
         chem = ctxpy.Chemical()
         result = chem.details(by='batch-dtxsid',
-                              word=['DTXSID7021360', 'DTXSID001009823'],
+                              query=dtxsid,
                               batch_size=1,
                               subset=None)
 
-        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxsid/',
-                                       word=['DTXSID7021360', 'DTXSID001009823'],
-                                       batch_size=1,
-                                       bracketed=True)
+        mocker.assert_called_once_with(endpoint='chemical/detail/search/by-dtxsid/',
+                                       query=dtxsid,
+                                       params=params,
+                                       batch_size=1)
         self.assertEqual(result, hit)
 
-    @patch('ctxpy.base.CTXConnection.batch')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_details_dtxsid_batch_greater_than_batch_size_nta_subset(self,mocker):
         hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
                'dtxsid': 'DTXSID7021360',
@@ -197,19 +226,22 @@ class TestChemical(unittest.TestCase):
                'preferredName': 'Toluene'}
         mocker.return_value = hit
 
+
+        dtxsid = ['DTXSID7021360', 'DTXSID001009823']
+        params = {'projection':'ntatoolkit'}
         chem = ctxpy.Chemical()
         result = chem.details(by='batch-dtxsid',
-                              word=['DTXSID7021360', 'DTXSID001009823'],
+                              query=dtxsid,
                               batch_size=1,
                               subset='nta')
 
-        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxsid/?projection=ntatoolkit',
-                                       word=['DTXSID7021360', 'DTXSID001009823'],
-                                       batch_size=1,
-                                       bracketed=True)
+        mocker.assert_called_once_with(endpoint='chemical/detail/search/by-dtxsid/',
+                                       query=dtxsid,
+                                       params=params,
+                                       batch_size=1)
         self.assertEqual(result, hit)
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_details_dtxcid_no_subset(self,mocker):
         hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
                'dtxsid': 'DTXSID7021360',
@@ -217,13 +249,18 @@ class TestChemical(unittest.TestCase):
                'preferredName': 'Toluene'}
         mocker.return_value = hit
 
+        dtxcid = 'DTXCID501360'
+        params = {"projection":"chemicaldetailall"}
         chem = ctxpy.Chemical()
-        result = chem.details(by='dtxcid',word='DTXCID501360',subset=None)
+        result = chem.details(by='dtxcid',query=dtxcid,subset=None)
 
-        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxcid/DTXCID501360')
+        mocker.assert_called_once_with(endpoint='chemical/detail/search/by-dtxcid/',
+                                       query=dtxcid,
+                                       params=params,
+                                       batch_size=1000)
         self.assertEqual(result, hit)
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_details_dtxcid_nta_subset(self,mocker):
         hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
                'dtxsid': 'DTXSID7021360',
@@ -231,13 +268,18 @@ class TestChemical(unittest.TestCase):
                'preferredName': 'Toluene'}
         mocker.return_value = hit
 
+        dtxcid = "DTXCID501360"
+        params = {"projection":"ntatoolkit"}
         chem = ctxpy.Chemical()
-        result = chem.details(by='dtxcid',word='DTXCID501360',subset='nta')
+        result = chem.details(by='dtxcid',query=dtxcid,subset='nta')
 
-        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxcid/DTXCID501360?projection=ntatoolkit')
+        mocker.assert_called_once_with(endpoint='chemical/detail/search/by-dtxcid/',
+                                       query=dtxcid,
+                                       params=params,
+                                       batch_size=1000)
         self.assertEqual(result, hit)
 
-    @patch('ctxpy.base.CTXConnection.batch')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_details_dtxcid_batch_less_than_batch_size_no_subset(self,mocker):
         hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
                'dtxsid': 'DTXSID7021360',
@@ -245,16 +287,18 @@ class TestChemical(unittest.TestCase):
                'preferredName': 'Toluene'}
         mocker.return_value = hit
 
+        dtxcid = ['DTXCID501360','DTXCID701868']
+        params = {"projection":"chemicaldetailall"}
         chem = ctxpy.Chemical()
-        result = chem.details(by='batch-dtxcid',word=['DTXCID501360','DTXCID701868'],subset=None)
+        result = chem.details(by='batch-dtxcid',query=dtxcid,subset=None)
 
-        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxcid/',
-                                       word=["DTXCID501360","DTXCID701868"],
-                                       batch_size=1000,
-                                       bracketed=True)
+        mocker.assert_called_once_with(endpoint='chemical/detail/search/by-dtxcid/',
+                                       query=dtxcid,
+                                       params=params,
+                                       batch_size=1000)
         self.assertEqual(result, hit)
 
-    @patch('ctxpy.base.CTXConnection.batch')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_details_dtxcid_batch_less_than_batch_size_nta_subset(self,mocker):
         hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
                'dtxsid': 'DTXSID7021360',
@@ -262,19 +306,21 @@ class TestChemical(unittest.TestCase):
                'preferredName': 'Toluene'}
         mocker.return_value = hit
 
+        dtxcid = ['DTXCID501360','DTXCID701868']
+        params = {"projection":"ntatoolkit"}
         chem = ctxpy.Chemical()
         result = chem.details(by='batch-dtxcid',
-                              word=['DTXCID501360','DTXCID701868'],
+                              query=dtxcid,
                               subset='nta')
 
-        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxcid/?projection=ntatoolkit',
-                                       word=["DTXCID501360","DTXCID701868"],
-                                       batch_size=1000,
-                                       bracketed=True)
+        mocker.assert_called_once_with(endpoint='chemical/detail/search/by-dtxcid/',
+                                       query=dtxcid,
+                                       params=params,
+                                       batch_size=1000)
         self.assertEqual(result, hit)
 
-    @patch('ctxpy.base.CTXConnection.batch')
-    def test_details_dtxscid_batch_greater_than_batch_size_no_subset(self,mocker):
+    @patch('ctxpy.base.CTXConnection.ctx_call')
+    def test_details_dtxcid_batch_greater_than_batch_size_no_subset(self,mocker):
         hit = [{"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
                'dtxsid': 'DTXSID7021360',
                'dtxcid': 'DTXCID501360',
@@ -285,19 +331,21 @@ class TestChemical(unittest.TestCase):
                 'preferredName': 'p-Xylene',}]
         mocker.return_value = hit
 
+        dtxcid = ['DTXCID501360','DTXCID701868']
+        params = {"projection":"chemicaldetailall"}
         chem = ctxpy.Chemical()
         result = chem.details(by='batch-dtxcid',
-                              word=['DTXCID501360','DTXCID701868'],
+                              query=dtxcid,
                               batch_size=1,
                               subset=None)
 
-        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxcid/',
-                                       word=['DTXCID501360','DTXCID701868'],
-                                       batch_size=1,
-                                       bracketed=True)
+        mocker.assert_called_once_with(endpoint='chemical/detail/search/by-dtxcid/',
+                                       query=dtxcid,
+                                       params=params,
+                                       batch_size=1)
         self.assertEqual(result, hit)
 
-    @patch('ctxpy.base.CTXConnection.batch')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_details_dtxcid_batch_greater_than_batch_size_nta_subset(self,mocker):
         hit = {"inchikey":"YXFVVABEGXRONW-UHFFFAOYSA-N",
                'dtxsid': 'DTXSID7021360',
@@ -305,57 +353,66 @@ class TestChemical(unittest.TestCase):
                'preferredName': 'Toluene'}
         mocker.return_value = hit
 
+        dtxcid = ['DTXCID501360','DTXCID701868']
+        params = {"projection":"ntatoolkit"}
         chem = ctxpy.Chemical()
         result = chem.details(by='batch-dtxcid',
-                              word=['DTXCID501360','DTXCID701868'],
+                              query=dtxcid,
                               batch_size=1,
                               subset='nta')
 
         
-        mocker.assert_called_once_with(suffix='chemical/detail/search/by-dtxcid/?projection=ntatoolkit',
-                                       word=['DTXCID501360','DTXCID701868'],
-                                       batch_size=1,
-                                       bracketed=True)
+        mocker.assert_called_once_with(endpoint='chemical/detail/search/by-dtxcid/',
+                                       query=dtxcid,
+                                       params=params,
+                                       batch_size=1)
         self.assertEqual(result, hit)
 
-    @patch('ctxpy.base.CTXConnection.get')
-    def test_msready_dtxsid(self,mocker):
+    @patch('ctxpy.base.CTXConnection.ctx_call')
+    def test_msready_dtxcid(self,mocker):
         hit = ['DTXSID00184990','DTXSID00370457','DTXSID00454524','DTXSID00480404',
                'DTXSID00566454','DTXSID00578496','DTXSID00746158','DTXSID00749720']
         mocker.return_value = hit
 
+        dtxcid = 'DTXCID30182'
         chem = ctxpy.Chemical()
         result = chem.msready(by='dtxcid',
-                              word='DTXCID30182')
+                              query=dtxcid)
 
-        mocker.assert_called_once_with(suffix='chemical/msready/search/by-dtxcid/DTXCID30182')
+        mocker.assert_called_once_with(endpoint='chemical/msready/search/by-dtxcid/',
+                                       query=dtxcid)
         self.assertEqual(result, hit)
         self.assertEqual(result, hit)
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_msready_mass(self,mocker):
         hit = ['DTXSID00184990','DTXSID00370457','DTXSID00454524','DTXSID00480404',
                'DTXSID00566454','DTXSID00578496','DTXSID00746158','DTXSID00749720']
         mocker.return_value = hit
 
+        start = 200.9
+        end = 200.95
         chem = ctxpy.Chemical()
         result = chem.msready(by='mass',
-                              start=200.9, end=200.95)
+                              start=start, end=end)
 
-        mocker.assert_called_once_with(suffix='chemical/msready/search/by-mass/200.9/200.95')
+        mocker.assert_called_once_with(endpoint='chemical/msready/search/by-mass/',
+                                       query=f'{start}/{end}')
         self.assertEqual(result, hit)
 
-    @patch('ctxpy.base.CTXConnection.get')
+    @patch('ctxpy.base.CTXConnection.ctx_call')
     def test_msready_formula(self,mocker):
         hit = ['DTXSID00184990','DTXSID00370457','DTXSID00454524','DTXSID00480404',
                'DTXSID00566454','DTXSID00578496','DTXSID00746158','DTXSID00749720']
         mocker.return_value = hit
 
+        formula = 'C16H24N2O5S'
         chem = ctxpy.Chemical()
         result = chem.msready(by='formula',
-                              word='C16H24N2O5S')
+                              query='C16H24N2O5S')
 
-        mocker.assert_called_once_with(suffix='chemical/msready/search/by-formula/C16H24N2O5S')
+        mocker.assert_called_once_with(endpoint='chemical/msready/search/by-formula/',
+                                       query=formula)
         self.assertEqual(result, hit)
 
 
