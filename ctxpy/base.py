@@ -129,7 +129,6 @@ class CTXConnection:
         except requests.exceptions.RequestException as err:
             raise err
 
-        print(self.response.url)
         try:
             info = json.loads(self.response.content.decode("utf-8"))
         except json.JSONDecodeError as err:
@@ -176,63 +175,6 @@ class CTXConnection:
                 
             info = self._request(endpoint=endpoint, query=query, params=params,
                                  bracketed=bracketed, quote_method=quote_method)
-        return info
-
-
-class HCDConnection:
-    """
-    Connection to the Hazard Comparison Dashboard APIs, no API key is needed, only GET 
-    calls are allowed to the API server.
-    
-
-        
-    Methods
-    -------
-    get
-        request information from specified source using information in header
-
-    """
-    def __init__(self):
-        
-        self.host = "https://hcd.rtpnc.epa.gov/api/"
-        self.descriptors = "descriptors?type=toxprints&smiles="
-        self.headers = "&headers=TRUE"
-
-    def get(self, smiles: str):
-        """
-        Request informaiton via API call
-        
-        Paramters
-        ---------
-        smiles : string
-            the suffix of the API call that will determine what is searched for and how
-        
-        Returns
-        -------
-        dict, JSON information that was requested in the API call
-        """
-        query = quote(smiles, safe="")
-        try:
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore",category=requests.urllib3.connectionpool.InsecureRequestWarning)
-                self.response = requests.get(
-                    f"{self.host}{self.descriptors}{query}{self.headers}",
-                    verify = False
-                )
-        except Exception as e:
-            ## TODO: make this a more informative error message
-            raise SystemError(e)
-
-        try:
-            info = json.loads(self.response.content.decode("utf-8"))
-        except json.JSONDecodeError as e:
-            ## TODO: make this a more informative error message
-            raise SystemError(e)
-        if 'descriptors' not in info['chemicals'][0].keys():
-            info = None
-        else:
-            info = info['chemicals'][0]['descriptors']
-
         return info
 
 

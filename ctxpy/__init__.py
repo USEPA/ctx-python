@@ -24,7 +24,7 @@ The docstring examples assume that `ctxpy` has been imported as ctx:
 Code snippets are indicated by three greater-than signs::
 
   >>> c = ctx.Chemical()
-  >>> c.search(by='equals',word='toluene')
+  >>> c.search(by='equals',query='toluene')
 
 Use the built-in ``help`` function to view a function's docstring:
 
@@ -60,9 +60,8 @@ from .chemical import Chemical
 from .exposure import Exposure
 from .hazard import Hazard
 from .chemical_list import ChemicalList
-from .cheminformatics import search_toxprints
 
-__all__ = ["Chemical", "Exposure","Hazard","ChemicalList",'search_toxprints']
+__all__ = ["Chemical", "Exposure","Hazard","ChemicalList"]
 __version__ = metadata.version('ctx-python')
 
 _disclaimer = """
