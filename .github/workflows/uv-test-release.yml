@@ -34,4 +34,4 @@ jobs:
       - name: ctx-python test (source distribution)
         run: uv run --isolated --no-project --with dist/*.tar.gz tests/test.py
       - name: Publish
-        run: uv publish --repository-url https://test.pypi.org/legacy
+        run: uv publish --publish-url https://test.pypi.org/legacy
