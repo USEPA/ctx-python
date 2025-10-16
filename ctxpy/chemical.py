@@ -1,6 +1,5 @@
-import logging
 from typing import Iterable, Optional, Union
-from urllib.parse import quote
+from importlib import resources
 
 from pandas.api.types import is_list_like
 
@@ -46,7 +45,36 @@ class Chemical(CTXConnection):
     def __init__(self, x_api_key: Optional[str] = None):
         super().__init__(x_api_key=x_api_key)
 
+    def _toxprints():
+        ## TODO: since I removed the cheminformatics part, I'd need to do something here
+        ## if folks are wanting to get ToxPrints from the CTX APIs. This will let them
+        ## access the ToxPrint headers, but it would probably be better to point users
+        ## toward the CIM Client...once I have that running.
+        """
+        Get names of ToxPrints.
 
+        This function will retrieve the name of ToxPrints fingerprints, so that they
+        can be applied to the string of ToxPrints for a chemical or chemicals.
+
+        Parameters
+        ---------
+        None
+
+        Returns
+        -------
+        list
+            The names of the 729 ToxPrint fingerprints.
+
+        Examples
+        --------
+        >>> Chemical._toxprints()
+
+        """
+
+        with open(resources.files("ctxpy.data")/"toxprints.txt", "r") as f:
+            toxps = f.read().splitlines()
+
+        return toxps
     def search(self, by: str, query: Union[str, Iterable[str]],
                batch_size: Optional[int]=200):
         """
