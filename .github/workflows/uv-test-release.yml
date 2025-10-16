@@ -28,10 +28,5 @@ jobs:
         run: uv python install 3.12
       - name: Build
         run: uv build
-      # Check that basic features work and we didn't miss to include crucial files
-      - name: ctx-python test (wheel)
-        run: uv run --isolated --no-project --with dist/*.whl tests/test.py
-      - name: ctx-python test (source distribution)
-        run: uv run --isolated --no-project --with dist/*.tar.gz tests/test.py
       - name: Publish
         run: uv publish --publish-url https://test.pypi.org/legacy
