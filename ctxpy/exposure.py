@@ -1,11 +1,9 @@
 from typing import Optional
-from urllib.parse import quote
 from time import sleep
 
-import pandas as pd
 from pandas.api.types import is_list_like
 
-from .base import CTXConnection
+from .base import CTXConnection, ResponseTransformer
 
 
 class Exposure(CTXConnection):
@@ -45,48 +43,34 @@ class Exposure(CTXConnection):
 
     """
 
+    KIND = "exposure"
+
     def __init__(self, x_api_key: Optional[str] = None):
         super().__init__(x_api_key=x_api_key)
-        self.kind = "exposure"
 
 
-    def _search(self, by: str, word: Optional[str] = None):
+    def _batch(self, endpoint:str, query:str):
         """
-        Helper function to implement Exposure searches
+        There are currently no batch searches for the `search_qsurs` and `search_mmdb` 
+        methods. This function allows a list of dtxsids to be sumitted to the 
+        `search_qsurs` method and run each dtxsid as its own get call to the 
+        CTXConnection. While the same could be done for the `search_mmdb` method, it is
+        not yet implemented because of the bandwidth/memory that is required for a call
+        of a single medium or chemical to that endpoint.
         """
-        if word is not None:
-            word = quote(word, safe="")
-            suffix = f"{self.kind}/{by}/{word}"
-        else:
-            suffix = f"{self.kind}/{by}"
-
-        info = pd.DataFrame(super(Exposure, self).get(suffix=suffix))
-
-        return info.fillna(pd.NA).replace("-",pd.NA).replace("",pd.NA)
-
-    def _batch(self,by,words,insert_id=False):
-        """
-        Helper function to implement batch Exposure searches
-        """
-        ## TODO: when post is added to exposure endpoints replace this with
-        ## `super().batch()`
+        
         
         ## Remove duplicated DTXSIDs
-        words = list(set(words))
+        query = list(set(query))
         
-        info = []
-        for word in words:
-            word = quote(word, safe="")
-            df = self._search(by=by,word=word)
-            if insert_id:
-                df.insert(loc=0,column='dtxsid',value=word)
-            info.append(df)
+        df = []
+        for q in query:
+            df.extend(self.request(endpoint=endpoint,query=q))
             sleep(0.1)
+        return df
 
-        info = pd.concat(info,ignore_index=True)
-        return info
 
-    def search_cpdat(self, vocab_name, dtxsid):
+    def search_cpdat(self, vocab_name, dtxsid, batch_size=200):
         """
         Search for CPDat information by CPDat vocabulary and DTXSID(s).
 
@@ -157,16 +141,13 @@ class Exposure(CTXConnection):
         if vocab_name not in options.keys():
             raise KeyError(f"Value {vocab_name} is invalid option for argument `by`.")
 
-        ## Make sure its a list-like objects of strings
-        if is_list_like(dtxsid):
-            info = self._batch(by=options[vocab_name],words=dtxsid)
-        elif isinstance(dtxsid,str):
-            dtxsid = quote(dtxsid, safe="")
-            info = self._search(by=options[vocab_name],word=dtxsid)
-        else:
-            raise TypeError("`dtxsid` must either be string or list-like of strings.")
+        endpoint = f"{self.KIND}/{options[vocab_name]}/"
+        info = super(Exposure, self).ctx_call(endpoint=endpoint,
+                                              query=dtxsid,
+                                              batch_size=batch_size,
+                                              bracketed=True)
 
-        return info
+        return ResponseTransformer(info).to_df()
 
 
 
@@ -231,16 +212,84 @@ class Exposure(CTXConnection):
         18  DTXSID2021868        skin_conditioner       0.0289
         19  DTXSID2021868         skin_protectant       0.1560
         """
-        endpoint = "functional-use/probability/search/by-dtxsid"
+        endpoint = f"{self.KIND}/functional-use/probability/search/by-dtxsid/"
         
         ## Make sure its a list-like objects of strings
         if is_list_like(dtxsid):
-            info = self._batch(by=endpoint,words=dtxsid,insert_id=True)
+            info = self._batch(endpoint=endpoint,query=dtxsid)
         elif isinstance(dtxsid,str):
-            dtxsid = quote(dtxsid, safe="")
-            info = self._search(by=endpoint,word=dtxsid)
+            info = super(Exposure,self).ctx_call(endpoint=endpoint, query=dtxsid)
         else:
             raise TypeError("`dtxsid` must either be string or list-like of strings.")
+
+        return ResponseTransformer(info).to_df()
+
+
+
+    def search_mmdb(self, by, query, aggregate=False):
+        """
+        Search the Multimedia Monitoring Database (MMDB) either via medium name or via
+        DTXSID(s).
+
+
+        Parameters
+        ----------
+        by : string
+            Method for searching MMDB. Options `medium`, 'aggregate`, or `dtxsid`. 
+            `medium` returns all single-source type chemical records for a single  
+            medium category, `aggregate` returns all aggregate type chemical records 
+            for a single medium category, and `dtxsid` returns all single source type
+            records for a single chemical substance across all media categories.
+
+        query: string
+            When searching MMDB only a single medium or chemical is searchable due to 
+            call time contraints.
+
+        Return
+        ------
+        pandas DataFrame
+            DataFrame containing the chemical identifier, harmonized functional use, and
+            probability of the chemical having that use for each "in domain" prediction
+            of a model.
+
+        Examples
+        --------
+        Search for predicted functional uses of a single chemical:
+        
+        >>> expo.search_mmdb(by='medium',query='livestock/meat')
+
+
+        Search for predicted functional uses of multiple chemicals
+
+        >>> expo.search_mmdb(by='dtxsid',query='DTXSID7020182')
+
+        """
+        if is_list_like(query):
+            raise NotImplementedError(
+                "Batch mode has not been implemented for searching MMDB."
+                )
+
+        options = {"medium":"/mmdb/single-sample/by-medium",
+                   "aggregate": "/mmdb/aggregate/by-medium",
+                   "dtxsid":"/mmdb/single-sample/by-dtxsid/"}
+        endpoint = f"{self.KIND}{options[by]}"
+
+        if by == 'dtxsid':
+            params = None
+            info = super(Exposure,self).ctx_call(endpoint=endpoint,
+                                                 query=query,
+                                                 params=params)
+            info = ResponseTransformer(info).to_df()
+        elif (by == 'medium') or (by == 'aggregate'):
+            params = {"medium":query}
+            info = super(Exposure,self).ctx_call(endpoint=endpoint,
+                                                 query=query,
+                                                 params=params)
+            info = ResponseTransformer(info['data']).to_df()
+            meta = {k:v for k,v in info.items() if k!="data"}
+            info.attrs = meta
+        else:
+            raise ValueError(f"{by} not a valid option for `by` parameter.")
 
         return info
 
@@ -315,16 +364,12 @@ class Exposure(CTXConnection):
         if by not in options.keys():
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
 
-        ## Make sure its a list-like objects of strings
-        if is_list_like(dtxsid):
-            info = self._batch(by=options[by],words=dtxsid)
-        elif isinstance(dtxsid,str):
-            dtxsid = quote(dtxsid, safe="")
-            info = self._search(by=options[by],word=dtxsid)
-        else:
-            raise TypeError("`dtxsid` must either be string or list-like of strings.")
+        endpoint = f"{self.KIND}/{options[by]}/"
 
-        return info
+        info = super(Exposure,self).ctx_call(endpoint=endpoint,
+                                             query=dtxsid)
+
+        return ResponseTransformer(info).to_df()
 
 
     def search_httk(self, dtxsid):
@@ -359,18 +404,41 @@ class Exposure(CTXConnection):
         5   101176  DTXSID7020182      Days.Css           NA       NaN  ...
 
         """
-        
-        endpoint = "httk/search/by-dtxsid"
-        ## Make sure its a list-like objects of strings
-        if is_list_like(dtxsid):
-            info = self._batch(by=endpoint,words=dtxsid,insert_id=False)
-        elif isinstance(dtxsid,str):
-            dtxsid = quote(dtxsid, safe="")
-            info = self._search(by=endpoint,word=dtxsid)
-        else:
-            raise TypeError("`dtxsid` must either be string or list-like of strings.")
 
-        return info
+        endpoint = f"{self.KIND}/httk/search/by-dtxsid/"
+        info = super(Exposure,self).ctx_call(endpoint=endpoint,
+                                             query=dtxsid)
+        return ResponseTransformer(info).to_df()
+
+    def get_mmdb_vocabulary(self):
+        """
+        Retrieve the harmonized media vocabulary for MMDB.
+
+        Parameters
+        ----------
+        None
+
+        Return
+        ------
+        pandas.DataFrame
+            DataFrame with every entry and its defintion in the controlled vocabulary.
+
+
+        Examples
+        --------
+
+        Retrieve MMDB vocabulary
+
+        >>> expo.get_mmdb_vocabulary()
+
+
+        """
+
+
+        endpoint = f"{self.KIND}/mmdb/mediums"
+        info = super(Exposure,self).ctx_call(endpoint=endpoint)
+        return ResponseTransformer(info).to_df()
+
 
     def get_cpdat_vocabulary(self, vocab_name):
         """
@@ -438,5 +506,7 @@ class Exposure(CTXConnection):
         if vocab_name not in options.keys():
             raise KeyError(f"{vocab_name} is invalid Exposure vocabulary name.")
 
-        return self._search(by=options[vocab_name],)
+        endpoint = f"{self.KIND}/{options[vocab_name]}"
+        info = super(Exposure,self).ctx_call(endpoint=endpoint)
+        return ResponseTransformer(info).to_df()
 
