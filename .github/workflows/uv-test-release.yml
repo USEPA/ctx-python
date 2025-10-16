@@ -34,4 +34,4 @@ jobs:
           UV_USERNAME: __token__
           UV_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
         run: |
-          uv publish --repository-url $UV_REPOSITORY_URL
+          uv publish --publish-url $UV_REPOSITORY_URL
