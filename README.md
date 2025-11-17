@@ -12,7 +12,7 @@ pip install ctx-python
 
 
 ## Initialization
-**Before being able to access CCTE's API, a user must acquire an API key.** See [https://api-ccte.epa.gov/docs/](https://api-ccte.epa.gov/docs/) for more information.
+**Before being able to access CCTE's API, a user must acquire an API key by emailing [ccte_api@epa.gov](mailto:ccte_api@epa.gov).** See [[https://api-ccte.epa.gov/docs/](https://www.epa.gov/comptox-tools/computational-toxicology-and-exposure-apis)]([https://api-ccte.epa.gov/docs/](https://www.epa.gov/comptox-tools/computational-toxicology-and-exposure-apis)) for more information.
 
 Once an API key is obtained, `ctx-python` offers two options for passing the key for authentication:
 
