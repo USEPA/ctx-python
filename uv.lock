@@ -90,7 +90,7 @@ wheels = [
 
 [[package]]
 name = "ctx-python"
-version = "0.0.1a8"
+version = "0.0.1a10"
 source = { editable = "." }
 dependencies = [
     { name = "pandas" },

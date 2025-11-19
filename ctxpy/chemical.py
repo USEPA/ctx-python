@@ -75,6 +75,8 @@ class Chemical(CTXConnection):
             toxps = f.read().splitlines()
 
         return toxps
+
+
     def search(self, by: str, query: Union[str, Iterable[str]],
                batch_size: Optional[int]=200):
         """
@@ -232,27 +234,6 @@ class Chemical(CTXConnection):
                                               query=query,
                                               batch_size=batch_size,
                                               bracketed=False)
-        # if by == "batch":
-            
-        #     if not is_list_like(query):
-        #         raise TypeError(
-        #             "Arugment `by` is 'batch', " "but `query` is not an list-type."
-        #         )
-        #     if len(query) > batch_size:
-
-        #         logging.warning(f"{len(query)} words were submitted for query, this is greater "
-        #              f"than the current API limit of {batch_size}. Search will be "
-        #              "batched to meet API requirements.")
-
-        #     ## This is a special wrapper of the CTXConnection `post` method.
-        #     info = super(Chemical,self).batch(endpoint=endpoint,
-        #                                       query=query,
-        #                                       batch_size=batch_size,
-        #                                       bracketed=False)
-
-        # else:
-
-        #     info = super(Chemical, self).get(endpoint=endpoint, query=query)
 
         return info
 
@@ -383,34 +364,9 @@ class Chemical(CTXConnection):
         endpoint = f"{self.KIND}/detail/search/{by_options[by]}/"
         params = {'projection':subset_options[subset]}
         info = super(Chemical, self).ctx_call(endpoint=endpoint,
-                                              query=query,
-                                              params=params,
-                                              batch_size=batch_size)
-
-        # if "batch" in by:
-            
-        #     if not is_list_like(query):
-        #         raise TypeError(
-        #             "Arugment `by` is 'batch', " "but `query` is not an list-type."
-        #         )
-        #     if len(query) > batch_size:
-        #         logging.warning(f"{len(query)} words were submitted for query, this is greater "
-        #              f"than the current API limit of {batch_size}. Search will be "
-        #              "batched to meet API requirements.",stacklevel=1)
-        #     info = super(Chemical,self).batch(endpoint=endpoint,
-        #                                       query=query,
-        #                                       params=params,
-        #                                       batch_size=batch_size,
-        #                                       bracketed=True)
-
-        # else:
-        #     if not isinstance(query, str):
-        #         raise TypeError(
-        #             f"Argument `by` is {by}, " f"but `query` is not string {query}."
-        #         )
-
-
-        #     info = super(Chemical, self).get(endpoint=endpoint, query=query,params=params)
+                                            query=query,
+                                            params=params,
+                                            batch_size=batch_size)
 
         return info
 
