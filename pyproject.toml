@@ -1,6 +1,6 @@
 [project]
 name = "ctx-python"
-version = "0.0.1a8"
+version = "0.0.1a9"
 description = "A Python API client for US EPA's Computational Toxicology and Exposure APIs."
 authors = [{ name = "Katherine Phillips", email = "phillips.katherine@epa.gov" }]
 requires-python = ">=3.10, <4"

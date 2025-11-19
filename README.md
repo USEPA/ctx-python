@@ -12,7 +12,7 @@ pip install ctx-python
 
 
 ## Initialization
-**Before being able to access CCTE's API, a user must acquire an API key.** See [https://api-ccte.epa.gov/docs/](https://api-ccte.epa.gov/docs/) for more information.
+**Before being able to access CCTE's API, a user must acquire an API key.** See [https://www.epa.gov/comptox-tools/computational-toxicology-and-exposure-apis-about](https://www.epa.gov/comptox-tools/computational-toxicology-and-exposure-apis-about) for more information.
 
 Once an API key is obtained, `ctx-python` offers two options for passing the key for authentication:
 
@@ -43,9 +43,7 @@ The backbone of `ctx-python` is its base `Connection` class. This class takes th
 - Chemical Lists (limited functionality)
 - Exposure
 - Hazard
-- Bioactivity (comming soon)
 
-In addition, there is also a `cheminformatics` module within the package for accessing ToxPrint chemotypes from either SMILES strings, DTXSIDs, or DTXCIDs.
 
 
 ### Chemical
@@ -61,42 +59,21 @@ import ctx
 chem = ctx.Chemical()
 
 # Search for some data
-chem.search(by='equals',word='toluene')
-chem.search(by='starts-with',word='atra')
-chem.search(by='contains',word='-00-')
-chem.search(by='batch',word=['50-00-0','BPA'])
+chem.search(by='equals', query='toluene')
+chem.search(by='starts-with', query='atra')
+chem.search(by='contains', query='-00-')
+chem.search(by='batch', query=['50-00-0','BPA'])
 
 
 # Get some chemical details
-chem.details(by='dtxsid', word='DTXSID7020182')
-chem.details(by='dtxcid', word='DTXCID701805')
-chem.details(by='batch', word=['DTXSID7020182','DTXSID3021805'])
+chem.details(by='dtxsid', query='DTXSID7020182')
+chem.details(by='dtxcid', query='DTXCID701805')
+chem.details(by='batch', query=['DTXSID7020182','DTXSID3021805'])
 
 # Search for some MS info
-chem.msready(by='dtxcid',word='DTXCID30182')
-chem.msready(by='formula', word='C17H19NO3')
+chem.msready(by='dtxcid', query='DTXCID30182')
+chem.msready(by='formula', query='C17H19NO3')
 chem.msready(by='mass', start=200.9, end=200.93)
-```
-
-
-### Cheminformatics
-ToxPrint chemotypes are useful descriptors for Quantitative Stucture-Activity/Property Relationships (QSAR/QSPR). They can now be accessed from both EPA's CTX APIs and EPA's HCD APIs via `ctx-python`.
-
-```{python}
-import ctxpy as ctx
-
-dtxcid = 'DTXCID701805'
-dtxsid = 'DTXSID7020182'
-smiles = 'CC=CO'
-
-# Search with a DSSTox identifier
-ctx.search_toxprints(chemical=dtxcid)
-
-# Search with a SMILES
-ctx.search_toxprints(chemical=smiles)
-
-# Search a list of identifiers
-ctx.search_toxprints(chemical=[dtxcid,dtxsid,smiles])
 ```
 
 
@@ -111,9 +88,9 @@ import ctx
 expo = ctx.Exposure()
 
 # Search for data reported data from CPDat
-expo.search_cpdat(vocab_name="fc",dtxsid="DTXSID7020182")
-expo.search_cpdat(vocab_name='puc',dtxsid='DTXSID7020182')
-expo.search_cpdat(vocab_name='lpk',word='DTXSID7020182')
+expo.search_cpdat(vocab_name="fc", dtxsid="DTXSID7020182")
+expo.search_cpdat(vocab_name='puc', dtxsid='DTXSID7020182')
+expo.search_cpdat(vocab_name='lpk', dtxsid='DTXSID7020182')
 
 # Get httk data results
 expo.search_httk(dtxsid='DTXSID7020182')
@@ -130,7 +107,7 @@ expo.search_qsur(dtxsid='DTXSID7020182')
 expo.search_exposures(by='pathways',dtxsid='DTXSID7020182')
 
 # Get exposure estimates from SEEM framework
-expo.search_exposures(by='seemm',dtxsid='DTXSID7020182')
+expo.search_exposures(by='seem',dtxsid='DTXSID7020182')
 ```
 
 With all search methods in the Exposure class, it is possible to provide a list of DTXSIDs and receive back a pandas DataFrame for all submitted chemicals in the list.
@@ -148,8 +125,8 @@ import ctxpy as ctx
 
 haz = ctx.Hazard()
 
-## Search ToxValDB for all chemical's data
-haz.search(by='all',dtxsid='DTXSID7020182')
+## Search ToxValDB for cancer data on specific chemical
+haz.search_toxvaldb(by='cancer', dtxsid='DTXSID7020182')
 
 ## Search ToxValDB for all chemical's human data
 haz.search(by='human',dtxsid='DTXSID7020182')

@@ -111,9 +111,14 @@ class CTXConnection:
                  quote_method: Union[str, Callable]='default'):
 
         method = self._get_request_method(query=query)
+
+        if (method == "POST") or (method == "PUT"):
+            self.headers['content-type'] = 'application/json'
+
         query = self._get_quoted_query(query=query,
                                        quote_method=quote_method,
                                        bracketed=bracketed)
+        
         url, data = self._get_url_and_data(method=method,
                                            endpoint=endpoint,
                                            query=query)
