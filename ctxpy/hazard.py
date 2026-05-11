@@ -81,7 +81,7 @@ class Hazard(CTXConnection):
         --------
 
         Search for all ToxValDB information for a chemical:
-        >>> haz.search(by='all',dtxsid='DTXSID7021360')
+        >>> haz.search_toxvaldb(by='all',dtxsid='DTXSID7021360')
 
                id  year       source         dtxsid  ... humanEcoNt
         0  718311  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
