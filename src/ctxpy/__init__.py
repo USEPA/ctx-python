@@ -76,5 +76,5 @@ recommendation or favoring by the USEPA. The USEPA seal and logo shall not be us
 any manner to imply endorsement of any commercial product or activity by the USEPA or 
 the United States Government.
 """
-if not version_info >= (3,10):
-    raise RuntimeError("`ctx-python` needs Python 3.10 or higher.")
+if not version_info >= (3,14):
+    raise RuntimeError("`ctx-python` needs Python 3.14 or higher.")
