@@ -1,7 +1,7 @@
 """Access the Chemical endpoints of the CTX API."""
 
-from typing import Iterable, Optional, Union
 from importlib import resources
+from typing import Iterable, Optional, Union
 
 from pandas.api.types import is_list_like
 
@@ -73,14 +73,14 @@ class Chemical(CTXConnection):
 
         """
 
-        with open(resources.files("ctxpy.data")/"toxprints.txt", "r") as f:
+        with open(resources.files("ctxpy.data") / "toxprints.txt", "r") as f:
             toxps = f.read().splitlines()
 
         return toxps
 
-
-    def search(self, by: str, query: Union[str, Iterable[str]],
-               batch_size: Optional[int]=200):
+    def search(
+        self, by: str, query: Union[str, Iterable[str]], batch_size: Optional[int] = 200
+    ):
         """
         Search for chemical(s) using chemical identifiers via CCTE's APIs.
 
@@ -170,7 +170,9 @@ class Chemical(CTXConnection):
         [{'dtxsid': 'DTXSID001000057',
           'dtxcid': 'DTXCID001427025',
           'casrn': '78812-00-7',
-          'preferredName': 'N-[(2-Methylquinolin-4-yl)methyl]guanidine--hydrogen chloride (1/1)',
+          'preferredName': (
+              'N-[(2-Methylquinolin-4-yl)methyl]guanidine--hydrogen chloride (1/1)'
+            ),
           'searchName': 'CASRN',
           'searchValue': '78812-00-7',
           'rank': 5,
@@ -229,18 +231,24 @@ class Chemical(CTXConnection):
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
 
         if (is_list_like(query)) and (by != "batch"):
-            raise NotImplementedError(f"`by` option of '{by}' cannot be used in batch mode.")
+            raise NotImplementedError(
+                f"`by` option of '{by}' cannot be used in batch mode."
+            )
 
         endpoint = f"{self.KIND}/search/{options[by]}/"
-        info = super(Chemical, self).ctx_call(endpoint=endpoint,
-                                              query=query,
-                                              batch_size=batch_size,
-                                              bracketed=False)
+        info = super(Chemical, self).ctx_call(
+            endpoint=endpoint, query=query, batch_size=batch_size, bracketed=False
+        )
 
         return info
 
-    def details(self, by: str, query: Union[str, Iterable[str]],
-                subset: Optional[str]=None, batch_size:Optional[int]=1000)->list:
+    def details(
+        self,
+        by: str,
+        query: Union[str, Iterable[str]],
+        subset: Optional[str] = None,
+        batch_size: Optional[int] = 1000,
+    ) -> list:
         ## TODO: add exactly what each subset returns
         """
         Get detailed information about chemical(s) via CCTE's APIs.
@@ -352,9 +360,9 @@ class Chemical(CTXConnection):
             "identifiers": "chemicalidentifier",
             "structures": "chemicalstructure",
             "nta": "ntatoolkit",
-            'ccd':'ccdchemicaldetails',
-            'assays': 'ccdassaydetails',
-            'compact':'compact'
+            "ccd": "ccdchemicaldetails",
+            "assays": "ccdassaydetails",
+            "compact": "compact",
         }
 
         if by not in by_options.keys():
@@ -364,11 +372,10 @@ class Chemical(CTXConnection):
             raise KeyError(f"Value {subset} is invalid option for argument `subset`.")
 
         endpoint = f"{self.KIND}/detail/search/{by_options[by]}/"
-        params = {'projection':subset_options[subset]}
-        info = super(Chemical, self).ctx_call(endpoint=endpoint,
-                                            query=query,
-                                            params=params,
-                                            batch_size=batch_size)
+        params = {"projection": subset_options[subset]}
+        info = super(Chemical, self).ctx_call(
+            endpoint=endpoint, query=query, params=params, batch_size=batch_size
+        )
 
         return info
 
@@ -455,7 +462,7 @@ class Chemical(CTXConnection):
             "formula": "by-formula",
         }
 
-        if (not isinstance(query,str)) and (by != "mass"):
+        if (not isinstance(query, str)) and (by != "mass"):
             raise ValueError("No search term provided to `query` argument.")
 
         if ((start is None) or (end is None)) and (by == "mass"):

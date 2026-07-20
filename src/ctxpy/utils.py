@@ -25,7 +25,7 @@ def chunker(listlike, size):
     return (listlike[pos : pos + size] for pos in range(0, len(listlike), size))
 
 
-def flatten(lofl:list):
+def flatten(lofl: list):
     """
     Takes a list of lists into and flattens into a single list
 
@@ -47,7 +47,7 @@ def flatten(lofl:list):
     return [item for lst in lofl for item in lst]
 
 
-def write_env(data:dict, env_file: Optional[Union[str, Path]] = None):
+def write_env(data: dict, env_file: Optional[Union[str, Path]] = None):
     """
     Writes or appends environment variables to a .env file. If no file exists,
     one is created.
@@ -64,9 +64,8 @@ def write_env(data:dict, env_file: Optional[Union[str, Path]] = None):
     if env_file is None:
         env_file = Path.home() / ".env"
     for k, v in data.items():
-        print("this is the write_env call",k,v)
+        print("this is the write_env call", k, v)
         set_key(env_file, k, v)
-    return
 
 
 def read_env(env_file: Optional[Union[str, Path]] = None):
@@ -85,7 +84,6 @@ def read_env(env_file: Optional[Union[str, Path]] = None):
         variable and each value is the value of the environment variable.
     """
     if env_file is None:
-
         ## Standard path to .env file
         env_file = Path.home() / ".env"
 

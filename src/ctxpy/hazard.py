@@ -45,15 +45,11 @@ class Hazard(CTXConnection):
         super().__init__(x_api_key=x_api_key)
         self.batch_size = 200
 
-
-
     def __str__(self):
-        if hasattr(self,'data'):
+        if hasattr(self, "data"):
             return self.data
         else:
             return f"CTXConnection.{str.title(self.kind)}"
-
-
 
     def search_toxvaldb(self, by: str, dtxsid: str):
         """
@@ -97,26 +93,24 @@ class Hazard(CTXConnection):
         """
 
         options = {
-            "cancer":"cancer-summary",
-            "skin-eye":"skin-eye",
+            "cancer": "cancer-summary",
+            "skin-eye": "skin-eye",
             "all": "toxval",
-            "genetox":"genetox/details",
-            "genetox-summary":"genetox/summary"
+            "genetox": "genetox/details",
+            "genetox-summary": "genetox/summary",
         }
 
         if by not in options.keys():
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
 
         endpoint = f"{self.KIND}/{options[by]}/search/by-dtxsid/"
-        info = super(Hazard,self).ctx_call(endpoint=endpoint,
-                                           query=dtxsid,
-                                           batch_size=self.batch_size)
+        info = super(Hazard, self).ctx_call(
+            endpoint=endpoint, query=dtxsid, batch_size=self.batch_size
+        )
 
         return ResponseTransformer(info).to_df()
 
-
-
-    def search_toxrefdb(self, by: str, domain:str, query: Iterable[str]):
+    def search_toxrefdb(self, by: str, domain: str, query: Iterable[str]):
         """
         Search for hazard information for multiple chemicals.
 
@@ -162,10 +156,12 @@ class Hazard(CTXConnection):
         4  717897  <NA>  DOE ECORISK  DTXSID7021360  ...        eco
         """
 
-        domains = ['effects','summary','data','observations',"all"]
-        options = {"study-type":"by-study-type",
-                   "dtxsid":"by-dtxsid",
-                   "study-id":"by-study-id"}
+        domains = ["effects", "summary", "data", "observations", "all"]
+        options = {
+            "study-type": "by-study-type",
+            "dtxsid": "by-dtxsid",
+            "study-id": "by-study-id",
+        }
 
         if by not in options.keys():
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
@@ -173,49 +169,49 @@ class Hazard(CTXConnection):
         if domain not in domains:
             raise ValueError(f"Value {domain} is invalid option for argument `domain`.")
 
-        if isinstance(query,int):
+        if isinstance(query, int):
             if by != "study-id":
                 raise TypeError("`query` is integer type, but domain is not 'study-id'")
             query = str(query)
 
-        if (is_list_like(query)) and (by != 'dtxsid'):
+        if (is_list_like(query)) and (by != "dtxsid"):
             raise NotImplementedError(f"Batch searching is not available for {by}")
 
         endpoint = f"{self.KIND}/toxref/{domain}/search/{options[by]}/"
-        endpoint = endpoint.replace("/all","")
+        endpoint = endpoint.replace("/all", "")
 
-        info = super(Hazard,self).ctx_call(endpoint=endpoint,
-                                           query=query,
-                                           batch_size=self.batch_size)
+        info = super(Hazard, self).ctx_call(
+            endpoint=endpoint, query=query, batch_size=self.batch_size
+        )
 
         return ResponseTransformer(info).to_df()
 
-    def _search_other(self,other,dtxsid):
+    def _search_other(self, other, dtxsid):
         endpoint = f"/{self.KIND}/{other}/search/by-dtxsid/"
-        info = super(Hazard,self).ctx_call(endpoint=endpoint, query=dtxsid)
+        info = super(Hazard, self).ctx_call(endpoint=endpoint, query=dtxsid)
         return ResponseTransformer(info).to_df()
 
-    def search_pprtv(self,dtxsid:str):
+    def search_pprtv(self, dtxsid: str):
         """
         get /hazard/pprtv/search/by-dtxsid/{dtxsid}
         """
 
-        return self._search_other(other='pprtv',dtxsid=dtxsid)
+        return self._search_other(other="pprtv", dtxsid=dtxsid)
 
-    def search_hawc(self,dtxsid:str):
+    def search_hawc(self, dtxsid: str):
         """
         /hazard/hawc/search/by-dtxsid/{dtxsid}
         """
-        return self._search_other(other='hawc',dtxsid=dtxsid)
+        return self._search_other(other="hawc", dtxsid=dtxsid)
 
-    def search_iris(self,dtxsid:str):
+    def search_iris(self, dtxsid: str):
         """
         /hazard/iris/search/by-dtxsid/{dtxsid}
         """
-        return self._search_other(other='iris',dtxsid=dtxsid)
+        return self._search_other(other="iris", dtxsid=dtxsid)
 
-    def search_adme_ivive(self,dtxsid:str):
+    def search_adme_ivive(self, dtxsid: str):
         """
         /hazard/adme-ivive/search/by-dtxsid/{dtxsid}
         """
-        return self._search_other(other='adme-ivive',dtxsid=dtxsid)
+        return self._search_other(other="adme-ivive", dtxsid=dtxsid)

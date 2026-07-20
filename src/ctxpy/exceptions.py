@@ -1,5 +1,6 @@
 """Custom Exceptions for ctx-python"""
 
+
 class TOMLError(Exception):
     """A base class for TOML errors encounters in ctxpy."""
 

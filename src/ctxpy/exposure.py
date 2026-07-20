@@ -1,7 +1,7 @@
 """Access the Exposure endpoints of the CTX API."""
 
-from typing import Optional
 from time import sleep
+from typing import Optional
 
 from pandas.api.types import is_list_like
 
@@ -50,8 +50,7 @@ class Exposure(CTXConnection):
     def __init__(self, x_api_key: Optional[str] = None):
         super().__init__(x_api_key=x_api_key)
 
-
-    def _batch(self, endpoint:str, query:str):
+    def _batch(self, endpoint: str, query: str):
         """
         There are currently no batch searches for the `search_qsurs` and `search_mmdb`
         methods. This function allows a list of dtxsids to be sumitted to the
@@ -61,16 +60,14 @@ class Exposure(CTXConnection):
         of a single medium or chemical to that endpoint.
         """
 
-
         ## Remove duplicated DTXSIDs
         query = list(set(query))
 
         df = []
         for q in query:
-            df.extend(self.request(endpoint=endpoint,query=q))
+            df.extend(self.request(endpoint=endpoint, query=q))
             sleep(0.1)
         return df
-
 
     def search_cpdat(self, vocab_name, dtxsid, batch_size=200):
         """
@@ -135,23 +132,20 @@ class Exposure(CTXConnection):
         """
 
         options = {
-            "fc":   "functional-use/search/by-dtxsid",
-            "puc":  "product-data/search/by-dtxsid",
-            "lpk":  "list-presence/search/by-dtxsid",
+            "fc": "functional-use/search/by-dtxsid",
+            "puc": "product-data/search/by-dtxsid",
+            "lpk": "list-presence/search/by-dtxsid",
         }
 
         if vocab_name not in options.keys():
             raise KeyError(f"Value {vocab_name} is invalid option for argument `by`.")
 
         endpoint = f"{self.KIND}/{options[vocab_name]}/"
-        info = super(Exposure, self).ctx_call(endpoint=endpoint,
-                                              query=dtxsid,
-                                              batch_size=batch_size,
-                                              bracketed=True)
+        info = super(Exposure, self).ctx_call(
+            endpoint=endpoint, query=dtxsid, batch_size=batch_size, bracketed=True
+        )
 
         return ResponseTransformer(info).to_df()
-
-
 
     def search_qsurs(self, dtxsid):
         """
@@ -218,15 +212,13 @@ class Exposure(CTXConnection):
 
         ## Make sure its a list-like objects of strings
         if is_list_like(dtxsid):
-            info = self._batch(endpoint=endpoint,query=dtxsid)
-        elif isinstance(dtxsid,str):
-            info = super(Exposure,self).ctx_call(endpoint=endpoint, query=dtxsid)
+            info = self._batch(endpoint=endpoint, query=dtxsid)
+        elif isinstance(dtxsid, str):
+            info = super(Exposure, self).ctx_call(endpoint=endpoint, query=dtxsid)
         else:
             raise TypeError("`dtxsid` must either be string or list-like of strings.")
 
         return ResponseTransformer(info).to_df()
-
-
 
     def search_mmdb(self, by, query, aggregate=False):
         """
@@ -269,32 +261,33 @@ class Exposure(CTXConnection):
         if is_list_like(query):
             raise NotImplementedError(
                 "Batch mode has not been implemented for searching MMDB."
-                )
+            )
 
-        options = {"medium":"/mmdb/single-sample/by-medium",
-                   "aggregate": "/mmdb/aggregate/by-medium",
-                   "dtxsid":"/mmdb/single-sample/by-dtxsid/"}
+        options = {
+            "medium": "/mmdb/single-sample/by-medium",
+            "aggregate": "/mmdb/aggregate/by-medium",
+            "dtxsid": "/mmdb/single-sample/by-dtxsid/",
+        }
         endpoint = f"{self.KIND}{options[by]}"
 
-        if by == 'dtxsid':
+        if by == "dtxsid":
             params = None
-            info = super(Exposure,self).ctx_call(endpoint=endpoint,
-                                                 query=query,
-                                                 params=params)
+            info = super(Exposure, self).ctx_call(
+                endpoint=endpoint, query=query, params=params
+            )
             info = ResponseTransformer(info).to_df()
-        elif (by == 'medium') or (by == 'aggregate'):
-            params = {"medium":query}
-            info = super(Exposure,self).ctx_call(endpoint=endpoint,
-                                                 query=query,
-                                                 params=params)
-            info = ResponseTransformer(info['data']).to_df()
-            meta = {k:v for k,v in info.items() if k!="data"}
+        elif (by in {"medium","aggregate"}):
+            params = {"medium": query}
+            info = super(Exposure, self).ctx_call(
+                endpoint=endpoint, query=query, params=params
+            )
+            info = ResponseTransformer(info["data"]).to_df()
+            meta = {k: v for k, v in info.items() if k != "data"}
             info.attrs = meta
         else:
             raise ValueError(f"{by} not a valid option for `by` parameter.")
 
         return info
-
 
     def search_exposures(self, by, dtxsid):
         """
@@ -361,18 +354,16 @@ class Exposure(CTXConnection):
 
         options = {
             "pathways": "seem/general/search/by-dtxsid",
-            "seem": "seem/demographic/search/by-dtxsid"
+            "seem": "seem/demographic/search/by-dtxsid",
         }
         if by not in options.keys():
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
 
         endpoint = f"{self.KIND}/{options[by]}/"
 
-        info = super(Exposure,self).ctx_call(endpoint=endpoint,
-                                             query=dtxsid)
+        info = super(Exposure, self).ctx_call(endpoint=endpoint, query=dtxsid)
 
         return ResponseTransformer(info).to_df()
-
 
     def search_httk(self, dtxsid):
         """
@@ -408,8 +399,7 @@ class Exposure(CTXConnection):
         """
 
         endpoint = f"{self.KIND}/httk/search/by-dtxsid/"
-        info = super(Exposure,self).ctx_call(endpoint=endpoint,
-                                             query=dtxsid)
+        info = super(Exposure, self).ctx_call(endpoint=endpoint, query=dtxsid)
         return ResponseTransformer(info).to_df()
 
     def get_mmdb_vocabulary(self):
@@ -436,11 +426,9 @@ class Exposure(CTXConnection):
 
         """
 
-
         endpoint = f"{self.KIND}/mmdb/mediums"
-        info = super(Exposure,self).ctx_call(endpoint=endpoint)
+        info = super(Exposure, self).ctx_call(endpoint=endpoint)
         return ResponseTransformer(info).to_df()
-
 
     def get_cpdat_vocabulary(self, vocab_name):
         """
@@ -509,5 +497,5 @@ class Exposure(CTXConnection):
             raise KeyError(f"{vocab_name} is invalid Exposure vocabulary name.")
 
         endpoint = f"{self.KIND}/{options[vocab_name]}"
-        info = super(Exposure,self).ctx_call(endpoint=endpoint)
+        info = super(Exposure, self).ctx_call(endpoint=endpoint)
         return ResponseTransformer(info).to_df()

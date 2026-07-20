@@ -1,75 +1,79 @@
 import unittest
 from unittest.mock import patch
+
 import pandas as pd
+
 import ctxpy
 
 
 class CustomAssertions:
-    def assertFramesEqual(self,left,right,**kwargs):
+    def assertFramesEqual(self, left, right, **kwargs):
         try:
-            pd.testing.assert_frame_equal(left=left,right=right,**kwargs)
+            pd.testing.assert_frame_equal(left=left, right=right, **kwargs)
         except AssertionError as e:
             raise e
 
-class TestHazard(unittest.TestCase, CustomAssertions):
 
+class TestHazard(unittest.TestCase, CustomAssertions):
     """
     All endpoint endpointes and response examplesa are taken from:
     https://comptox.epa.gov/ctx-api/docs/hazard.html
     """
-    
 
-    @patch('ctxpy.base.CTXConnection.ctx_call')
+    @patch("ctxpy.base.CTXConnection.ctx_call")
     def test_search_tovaldb_cancer_serial(self, mocker):
 
-        hit = [{"id": 0,
+        hit = [
+            {
+                "id": 0,
                 "dtxsid": "AAAAAA",
                 "source": "AAAAAA",
                 "exposureRoute": "AAAAAA",
                 "cancerCall": "AAAAAA",
-                "url": "AAAAAA"}]
-        dtxsid = 'DTXSID7020182'
+                "url": "AAAAAA",
+            }
+        ]
+        dtxsid = "DTXSID7020182"
 
         mocker.return_value = hit
 
         haz = ctxpy.Hazard()
-        result = haz.search_toxvaldb(by='cancer',
-                                     dtxsid=dtxsid)
+        result = haz.search_toxvaldb(by="cancer", dtxsid=dtxsid)
 
-        endpoint = 'hazard/cancer-summary/search/by-dtxsid/'
+        endpoint = "hazard/cancer-summary/search/by-dtxsid/"
 
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=dtxsid,
-                                       batch_size=200)
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid, batch_size=200)
         self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-
-    @patch('ctxpy.base.CTXConnection.ctx_call')
+    @patch("ctxpy.base.CTXConnection.ctx_call")
     def test_search_tovaldb_cancer_batch(self, mocker):
-        hit = [{"id": 0,
+        hit = [
+            {
+                "id": 0,
                 "dtxsid": "AAAAAA",
                 "source": "AAAAAA",
                 "exposureRoute": "AAAAAA",
                 "cancerCall": "AAAAAA",
-                "url": "AAAAAA"}]
-        dtxsid = ['DTXSID7020182','DTXSID2021868']
+                "url": "AAAAAA",
+            }
+        ]
+        dtxsid = ["DTXSID7020182", "DTXSID2021868"]
         mocker.return_value = hit
 
         haz = ctxpy.Hazard()
-        result = haz.search_toxvaldb(by='cancer',
-                                     dtxsid=dtxsid)
-        
-        dtxsid = ['DTXSID7020182','DTXSID2021868']
-        endpoint = 'hazard/cancer-summary/search/by-dtxsid/'
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=dtxsid,
-                                       batch_size=200)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        result = haz.search_toxvaldb(by="cancer", dtxsid=dtxsid)
 
-    @patch('ctxpy.base.CTXConnection.ctx_call')
+        dtxsid = ["DTXSID7020182", "DTXSID2021868"]
+        endpoint = "hazard/cancer-summary/search/by-dtxsid/"
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid, batch_size=200)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
+
+    @patch("ctxpy.base.CTXConnection.ctx_call")
     def test_search_tovaldb_skin_eye_serial(self, mocker):
 
-        hit = [{"id": 0,
+        hit = [
+            {
+                "id": 0,
                 "authority": "AAAAAA",
                 "classification": "AAAAAA",
                 "dtxsid": "AAAAAA",
@@ -87,24 +91,26 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "species": "AAAAAA",
                 "strain": "AAAAAA",
                 "studyType": "AAAAAA",
-                "year": 0}]
-        dtxsid = 'DTXSID7020182'
+                "year": 0,
+            }
+        ]
+        dtxsid = "DTXSID7020182"
 
         mocker.return_value = hit
 
         haz = ctxpy.Hazard()
-        result = haz.search_toxvaldb(by='skin-eye', dtxsid=dtxsid)
+        result = haz.search_toxvaldb(by="skin-eye", dtxsid=dtxsid)
 
-        endpoint = 'hazard/skin-eye/search/by-dtxsid/'
+        endpoint = "hazard/skin-eye/search/by-dtxsid/"
 
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=dtxsid,
-                                       batch_size=200)
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid, batch_size=200)
         self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.ctx_call')
+    @patch("ctxpy.base.CTXConnection.ctx_call")
     def test_search_tovaldb_skin_eye_batch(self, mocker):
-        hit = [{"id": 0,
+        hit = [
+            {
+                "id": 0,
                 "authority": "AAAAAA",
                 "classification": "AAAAAA",
                 "dtxsid": "AAAAAA",
@@ -122,23 +128,25 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "species": "AAAAAA",
                 "strain": "AAAAAA",
                 "studyType": "AAAAAA",
-                "year": 0}]
+                "year": 0,
+            }
+        ]
         mocker.return_value = hit
-        dtxsid = ['DTXSID7020182','DTXSID2021868']
+        dtxsid = ["DTXSID7020182", "DTXSID2021868"]
 
         haz = ctxpy.Hazard()
-        result = haz.search_toxvaldb(by='skin-eye', dtxsid=dtxsid)
+        result = haz.search_toxvaldb(by="skin-eye", dtxsid=dtxsid)
 
-        endpoint = 'hazard/skin-eye/search/by-dtxsid/'
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=dtxsid,
-                                       batch_size=200)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        endpoint = "hazard/skin-eye/search/by-dtxsid/"
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid, batch_size=200)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.ctx_call')
+    @patch("ctxpy.base.CTXConnection.ctx_call")
     def test_search_tovaldb_all_serial(self, mocker):
 
-        hit = [{"id": 0,
+        hit = [
+            {
+                "id": 0,
                 "dtxsid": "AAAAAA",
                 "casrn": "string",
                 "name": "string",
@@ -203,24 +211,26 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "exposureFormOriginal": "AAAAAA",
                 "mediaOriginal": "AAAAAA",
                 "toxicologicalEffectOriginal": "string",
-                "originalYear": "AAAAAA"}]
-        dtxsid = 'DTXSID7020182'
+                "originalYear": "AAAAAA",
+            }
+        ]
+        dtxsid = "DTXSID7020182"
 
         mocker.return_value = hit
 
         haz = ctxpy.Hazard()
-        result = haz.search_toxvaldb(by='all', dtxsid=dtxsid)
+        result = haz.search_toxvaldb(by="all", dtxsid=dtxsid)
 
-        endpoint = 'hazard/toxval/search/by-dtxsid/'
+        endpoint = "hazard/toxval/search/by-dtxsid/"
 
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=dtxsid,
-                                       batch_size=200)
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid, batch_size=200)
         self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.ctx_call')
+    @patch("ctxpy.base.CTXConnection.ctx_call")
     def test_search_tovaldb_all_batch(self, mocker):
-        hit = [{"id": 0,
+        hit = [
+            {
+                "id": 0,
                 "dtxsid": "AAAAAA",
                 "casrn": "string",
                 "name": "string",
@@ -285,22 +295,24 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "exposureFormOriginal": "AAAAAA",
                 "mediaOriginal": "AAAAAA",
                 "toxicologicalEffectOriginal": "string",
-                "originalYear": "AAAAAA"}]
+                "originalYear": "AAAAAA",
+            }
+        ]
         mocker.return_value = hit
-        dtxsid = ['DTXSID7020182','DTXSID2021868']
+        dtxsid = ["DTXSID7020182", "DTXSID2021868"]
 
         haz = ctxpy.Hazard()
-        result = haz.search_toxvaldb(by='all', dtxsid=dtxsid)
-        endpoint = 'hazard/toxval/search/by-dtxsid/'
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=dtxsid,
-                                       batch_size=200)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        result = haz.search_toxvaldb(by="all", dtxsid=dtxsid)
+        endpoint = "hazard/toxval/search/by-dtxsid/"
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid, batch_size=200)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.ctx_call')
+    @patch("ctxpy.base.CTXConnection.ctx_call")
     def test_search_tovaldb_all_genetox_serial(self, mocker):
 
-        hit = [{"id": 0,
+        hit = [
+            {
+                "id": 0,
                 "assayCategory": "AAAAAA",
                 "assayCode": "AAAAAA",
                 "assayPotency": 0,
@@ -340,24 +352,26 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "strain": "AAAAAA",
                 "title": "AAAAAA",
                 "useme": 0,
-                "year": 0}]
-        dtxsid = 'DTXSID7020182'
+                "year": 0,
+            }
+        ]
+        dtxsid = "DTXSID7020182"
 
         mocker.return_value = hit
 
         haz = ctxpy.Hazard()
-        result = haz.search_toxvaldb(by='genetox', dtxsid=dtxsid)
+        result = haz.search_toxvaldb(by="genetox", dtxsid=dtxsid)
 
-        endpoint = 'hazard/genetox/details/search/by-dtxsid/'
+        endpoint = "hazard/genetox/details/search/by-dtxsid/"
 
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=dtxsid,
-                                       batch_size=200)
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid, batch_size=200)
         self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.ctx_call')
+    @patch("ctxpy.base.CTXConnection.ctx_call")
     def test_search_tovaldb_all_genetox_batch(self, mocker):
-        hit = [{"id": 0,
+        hit = [
+            {
+                "id": 0,
                 "assayCategory": "AAAAAA",
                 "assayCode": "AAAAAA",
                 "assayPotency": 0,
@@ -397,22 +411,24 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "strain": "AAAAAA",
                 "title": "AAAAAA",
                 "useme": 0,
-                "year": 0}]
+                "year": 0,
+            }
+        ]
         mocker.return_value = hit
-        dtxsid = ['DTXSID7020182','DTXSID2021868']
+        dtxsid = ["DTXSID7020182", "DTXSID2021868"]
 
         haz = ctxpy.Hazard()
-        result = haz.search_toxvaldb(by='genetox', dtxsid=dtxsid)
-        endpoint = 'hazard/genetox/details/search/by-dtxsid/'
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=dtxsid,
-                                       batch_size=200)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        result = haz.search_toxvaldb(by="genetox", dtxsid=dtxsid)
+        endpoint = "hazard/genetox/details/search/by-dtxsid/"
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid, batch_size=200)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.ctx_call')
+    @patch("ctxpy.base.CTXConnection.ctx_call")
     def test_search_tovaldb_all_genetox_summary_serial(self, mocker):
 
-        hit = [{"id": 0,
+        hit = [
+            {
+                "id": 0,
                 "ames": "AAAAAA",
                 "clowderDocId": "AAAAAA",
                 "dtxsid": "AAAAAA",
@@ -421,24 +437,26 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "micronucleus": "AAAAAA",
                 "reportsNegative": 0,
                 "reportsOther": 0,
-                "reportsPositive": 0}]
-        dtxsid = 'DTXSID7020182'
+                "reportsPositive": 0,
+            }
+        ]
+        dtxsid = "DTXSID7020182"
 
         mocker.return_value = hit
 
         haz = ctxpy.Hazard()
-        result = haz.search_toxvaldb(by='genetox-summary', dtxsid=dtxsid)
+        result = haz.search_toxvaldb(by="genetox-summary", dtxsid=dtxsid)
 
-        endpoint = 'hazard/genetox/summary/search/by-dtxsid/'
+        endpoint = "hazard/genetox/summary/search/by-dtxsid/"
 
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=dtxsid,
-                                       batch_size=200)
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid, batch_size=200)
         self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.ctx_call')
+    @patch("ctxpy.base.CTXConnection.ctx_call")
     def test_search_tovaldb_all_genetox_summary_batch(self, mocker):
-        hit = [{"id": 0,
+        hit = [
+            {
+                "id": 0,
                 "ames": "AAAAAA",
                 "clowderDocId": "AAAAAA",
                 "dtxsid": "AAAAAA",
@@ -447,21 +465,23 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "micronucleus": "AAAAAA",
                 "reportsNegative": 0,
                 "reportsOther": 0,
-                "reportsPositive": 0}]
+                "reportsPositive": 0,
+            }
+        ]
         mocker.return_value = hit
-        dtxsid = ['DTXSID7020182','DTXSID2021868']
+        dtxsid = ["DTXSID7020182", "DTXSID2021868"]
 
         haz = ctxpy.Hazard()
-        result = haz.search_toxvaldb(by='genetox-summary', dtxsid=dtxsid)
-        endpoint = 'hazard/genetox/summary/search/by-dtxsid/'
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=dtxsid,
-                                       batch_size=200)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        result = haz.search_toxvaldb(by="genetox-summary", dtxsid=dtxsid)
+        endpoint = "hazard/genetox/summary/search/by-dtxsid/"
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid, batch_size=200)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.ctx_call')
-    def test_search_toxrefdb_effects_by_study_id(self,mocker):
-        hit = [{"id": 0,
+    @patch("ctxpy.base.CTXConnection.ctx_call")
+    def test_search_toxrefdb_effects_by_study_id(self, mocker):
+        hit = [
+            {
+                "id": 0,
                 "studyId": 0,
                 "dtxsid": "AAAAAA",
                 "casrn": "AAAAAA",
@@ -516,23 +536,24 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "timeUnit": "AAAAAA",
                 "noQuantDataReported": False,
                 "exportDate": "1970-01-01",
-                "version": "string"}]
+                "version": "string",
+            }
+        ]
         mocker.return_value = hit
         study_id = "12"
-        endpoint = 'hazard/toxref/effects/search/by-study-id/'
+        endpoint = "hazard/toxref/effects/search/by-study-id/"
         haz = ctxpy.Hazard()
-        result = haz.search_toxrefdb(by='study-id',
-                                     domain='effects',
-                                     query=study_id)
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=study_id,
-                                       batch_size=200)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        result = haz.search_toxrefdb(by="study-id", domain="effects", query=study_id)
+        mocker.assert_called_once_with(
+            endpoint=endpoint, query=study_id, batch_size=200
+        )
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-
-    @patch('ctxpy.base.CTXConnection.ctx_call')
-    def test_search_toxrefdb_effects_by_study_type(self,mocker):
-        hit = [{"id": 0,
+    @patch("ctxpy.base.CTXConnection.ctx_call")
+    def test_search_toxrefdb_effects_by_study_type(self, mocker):
+        hit = [
+            {
+                "id": 0,
                 "studyId": 0,
                 "dtxsid": "AAAAAA",
                 "casrn": "AAAAAA",
@@ -587,23 +608,26 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "timeUnit": "AAAAAA",
                 "noQuantDataReported": False,
                 "exportDate": "1970-01-01",
-                "version": "string"}]
+                "version": "string",
+            }
+        ]
         mocker.return_value = hit
-        study_type = 'MGR'
-        endpoint = 'hazard/toxref/effects/search/by-study-type/'
+        study_type = "MGR"
+        endpoint = "hazard/toxref/effects/search/by-study-type/"
         haz = ctxpy.Hazard()
-        result = haz.search_toxrefdb(by='study-type',
-                                     domain='effects',
-                                     query=study_type)
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=study_type,
-                                       batch_size=200)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        result = haz.search_toxrefdb(
+            by="study-type", domain="effects", query=study_type
+        )
+        mocker.assert_called_once_with(
+            endpoint=endpoint, query=study_type, batch_size=200
+        )
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-
-    @patch('ctxpy.base.CTXConnection.ctx_call')
-    def test_search_toxrefdb_effects_by_dtxsid(self,mocker):
-        hit = [{"id": 0,
+    @patch("ctxpy.base.CTXConnection.ctx_call")
+    def test_search_toxrefdb_effects_by_dtxsid(self, mocker):
+        hit = [
+            {
+                "id": 0,
                 "studyId": 0,
                 "dtxsid": "AAAAAA",
                 "casrn": "AAAAAA",
@@ -658,23 +682,22 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "timeUnit": "AAAAAA",
                 "noQuantDataReported": False,
                 "exportDate": "1970-01-01",
-                "version": "string"}]
+                "version": "string",
+            }
+        ]
         mocker.return_value = hit
-        dtxsid = 'DTXSID7020182'
-        endpoint = 'hazard/toxref/effects/search/by-dtxsid/'
+        dtxsid = "DTXSID7020182"
+        endpoint = "hazard/toxref/effects/search/by-dtxsid/"
         haz = ctxpy.Hazard()
-        result = haz.search_toxrefdb(by='dtxsid',
-                                     domain='effects',
-                                     query=dtxsid)
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=dtxsid,
-                                       batch_size=200)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        result = haz.search_toxrefdb(by="dtxsid", domain="effects", query=dtxsid)
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid, batch_size=200)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-
-    @patch('ctxpy.base.CTXConnection.ctx_call')
-    def test_search_toxrefdb_summary_by_study_type(self,mocker):
-        hit = [{"id": 0,
+    @patch("ctxpy.base.CTXConnection.ctx_call")
+    def test_search_toxrefdb_summary_by_study_type(self, mocker):
+        hit = [
+            {
+                "id": 0,
                 "studyId": 0,
                 "dtxsid": "AAAAAA",
                 "casrn": "AAAAAA",
@@ -695,23 +718,26 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "doseEnd": 0,
                 "doseEndUnit": "AAAAAA",
                 "exportDate": "1970-01-01",
-                "version": "string"}]
+                "version": "string",
+            }
+        ]
         mocker.return_value = hit
-        study_type = 'MGR'
-        endpoint = 'hazard/toxref/summary/search/by-study-type/'
+        study_type = "MGR"
+        endpoint = "hazard/toxref/summary/search/by-study-type/"
         haz = ctxpy.Hazard()
-        result = haz.search_toxrefdb(by='study-type',
-                                     domain='summary',
-                                     query=study_type)
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=study_type,
-                                       batch_size=200)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        result = haz.search_toxrefdb(
+            by="study-type", domain="summary", query=study_type
+        )
+        mocker.assert_called_once_with(
+            endpoint=endpoint, query=study_type, batch_size=200
+        )
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-
-    @patch('ctxpy.base.CTXConnection.ctx_call')
-    def test_search_toxrefdb_summary_by_study_id(self,mocker):
-        hit = [{"id": 0,
+    @patch("ctxpy.base.CTXConnection.ctx_call")
+    def test_search_toxrefdb_summary_by_study_id(self, mocker):
+        hit = [
+            {
+                "id": 0,
                 "studyId": 0,
                 "dtxsid": "AAAAAA",
                 "casrn": "AAAAAA",
@@ -732,23 +758,24 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "doseEnd": 0,
                 "doseEndUnit": "AAAAAA",
                 "exportDate": "1970-01-01",
-                "version": "string"}]
+                "version": "string",
+            }
+        ]
         mocker.return_value = hit
         study_id = "12"
-        endpoint = 'hazard/toxref/summary/search/by-study-id/'
+        endpoint = "hazard/toxref/summary/search/by-study-id/"
         haz = ctxpy.Hazard()
-        result = haz.search_toxrefdb(by='study-id',
-                                     domain='summary',
-                                     query=study_id)
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=study_id,
-                                       batch_size=200)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        result = haz.search_toxrefdb(by="study-id", domain="summary", query=study_id)
+        mocker.assert_called_once_with(
+            endpoint=endpoint, query=study_id, batch_size=200
+        )
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-
-    @patch('ctxpy.base.CTXConnection.ctx_call')
-    def test_search_toxrefdb_summary_by_dtxsid(self,mocker):
-        hit = [{"id": 0,
+    @patch("ctxpy.base.CTXConnection.ctx_call")
+    def test_search_toxrefdb_summary_by_dtxsid(self, mocker):
+        hit = [
+            {
+                "id": 0,
                 "studyId": 0,
                 "dtxsid": "AAAAAA",
                 "casrn": "AAAAAA",
@@ -769,23 +796,22 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "doseEnd": 0,
                 "doseEndUnit": "AAAAAA",
                 "exportDate": "1970-01-01",
-                "version": "string"}]
+                "version": "string",
+            }
+        ]
         mocker.return_value = hit
-        dtxsid = 'DTXSID7020182'
-        endpoint = 'hazard/toxref/summary/search/by-dtxsid/'
+        dtxsid = "DTXSID7020182"
+        endpoint = "hazard/toxref/summary/search/by-dtxsid/"
         haz = ctxpy.Hazard()
-        result = haz.search_toxrefdb(by='dtxsid',
-                                     domain='summary',
-                                     query=dtxsid)
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=dtxsid,
-                                       batch_size=200)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        result = haz.search_toxrefdb(by="dtxsid", domain="summary", query=dtxsid)
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid, batch_size=200)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-
-    @patch('ctxpy.base.CTXConnection.ctx_call')
-    def test_search_toxrefdb_data_by_study_type(self,mocker):
-        hit = [{"id": 0,
+    @patch("ctxpy.base.CTXConnection.ctx_call")
+    def test_search_toxrefdb_data_by_study_type(self, mocker):
+        hit = [
+            {
+                "id": 0,
                 "studyId": 0,
                 "dtxsid": "AAAAAA",
                 "casrn": "AAAAAA",
@@ -840,23 +866,24 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "timeUnit": "AAAAAA",
                 "noQuantDataReported": False,
                 "exportDate": "1970-01-01",
-                "version": "string"}]
+                "version": "string",
+            }
+        ]
         mocker.return_value = hit
-        study_type = 'MGR'
-        endpoint = 'hazard/toxref/data/search/by-study-type/'
+        study_type = "MGR"
+        endpoint = "hazard/toxref/data/search/by-study-type/"
         haz = ctxpy.Hazard()
-        result = haz.search_toxrefdb(by='study-type',
-                                     domain='data',
-                                     query=study_type)
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=study_type,
-                                       batch_size=200)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        result = haz.search_toxrefdb(by="study-type", domain="data", query=study_type)
+        mocker.assert_called_once_with(
+            endpoint=endpoint, query=study_type, batch_size=200
+        )
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-
-    @patch('ctxpy.base.CTXConnection.ctx_call')
-    def test_search_toxrefdb_data_by_study_id(self,mocker):
-        hit = [{"id": 0,
+    @patch("ctxpy.base.CTXConnection.ctx_call")
+    def test_search_toxrefdb_data_by_study_id(self, mocker):
+        hit = [
+            {
+                "id": 0,
                 "studyId": 0,
                 "dtxsid": "AAAAAA",
                 "casrn": "AAAAAA",
@@ -911,23 +938,24 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "timeUnit": "AAAAAA",
                 "noQuantDataReported": False,
                 "exportDate": "1970-01-01",
-                "version": "string"}]
+                "version": "string",
+            }
+        ]
         mocker.return_value = hit
         study_id = "12"
-        endpoint = 'hazard/toxref/data/search/by-study-id/'
+        endpoint = "hazard/toxref/data/search/by-study-id/"
         haz = ctxpy.Hazard()
-        result = haz.search_toxrefdb(by='study-id',
-                                     domain='data',
-                                     query=study_id)
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=study_id,
-                                       batch_size=200)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        result = haz.search_toxrefdb(by="study-id", domain="data", query=study_id)
+        mocker.assert_called_once_with(
+            endpoint=endpoint, query=study_id, batch_size=200
+        )
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-
-    @patch('ctxpy.base.CTXConnection.ctx_call')
-    def test_search_toxrefdb_data_by_dtxsid(self,mocker):
-        hit = [{"id": 0,
+    @patch("ctxpy.base.CTXConnection.ctx_call")
+    def test_search_toxrefdb_data_by_dtxsid(self, mocker):
+        hit = [
+            {
+                "id": 0,
                 "studyId": 0,
                 "dtxsid": "AAAAAA",
                 "casrn": "AAAAAA",
@@ -982,23 +1010,22 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "timeUnit": "AAAAAA",
                 "noQuantDataReported": False,
                 "exportDate": "1970-01-01",
-                "version": "string"}]
+                "version": "string",
+            }
+        ]
         mocker.return_value = hit
-        dtxsid = 'DTXSID7020182'
-        endpoint = 'hazard/toxref/data/search/by-dtxsid/'
+        dtxsid = "DTXSID7020182"
+        endpoint = "hazard/toxref/data/search/by-dtxsid/"
         haz = ctxpy.Hazard()
-        result = haz.search_toxrefdb(by='dtxsid',
-                                     domain='data',
-                                     query=dtxsid)
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=dtxsid,
-                                       batch_size=200)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        result = haz.search_toxrefdb(by="dtxsid", domain="data", query=dtxsid)
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid, batch_size=200)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-
-    @patch('ctxpy.base.CTXConnection.ctx_call')
-    def test_search_toxrefdb_observations_by_study_type(self,mocker):
-        hit = [{"id": 0,
+    @patch("ctxpy.base.CTXConnection.ctx_call")
+    def test_search_toxrefdb_observations_by_study_type(self, mocker):
+        hit = [
+            {
+                "id": 0,
                 "studyId": 0,
                 "dtxsid": "AAAAAA",
                 "casrn": "AAAAAA",
@@ -1014,23 +1041,26 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "testedStatus": False,
                 "reportedStatus": False,
                 "exportDate": "1970-01-01",
-                "version": "string"}]
+                "version": "string",
+            }
+        ]
         mocker.return_value = hit
-        study_type = 'MGR'
-        endpoint = 'hazard/toxref/observations/search/by-study-type/'
+        study_type = "MGR"
+        endpoint = "hazard/toxref/observations/search/by-study-type/"
         haz = ctxpy.Hazard()
-        result = haz.search_toxrefdb(by='study-type',
-                                     domain='observations',
-                                     query=study_type)
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=study_type,
-                                       batch_size=200)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        result = haz.search_toxrefdb(
+            by="study-type", domain="observations", query=study_type
+        )
+        mocker.assert_called_once_with(
+            endpoint=endpoint, query=study_type, batch_size=200
+        )
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-
-    @patch('ctxpy.base.CTXConnection.ctx_call')
-    def test_search_toxrefdb_observations_by_study_id(self,mocker):
-        hit = [{"id": 0,
+    @patch("ctxpy.base.CTXConnection.ctx_call")
+    def test_search_toxrefdb_observations_by_study_id(self, mocker):
+        hit = [
+            {
+                "id": 0,
                 "studyId": 0,
                 "dtxsid": "AAAAAA",
                 "casrn": "AAAAAA",
@@ -1046,23 +1076,26 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "testedStatus": False,
                 "reportedStatus": False,
                 "exportDate": "1970-01-01",
-                "version": "string"}]
+                "version": "string",
+            }
+        ]
         mocker.return_value = hit
         study_id = "12"
-        endpoint = 'hazard/toxref/observations/search/by-study-id/'
+        endpoint = "hazard/toxref/observations/search/by-study-id/"
         haz = ctxpy.Hazard()
-        result = haz.search_toxrefdb(by='study-id',
-                                     domain='observations',
-                                     query=study_id)
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=study_id,
-                                       batch_size=200)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        result = haz.search_toxrefdb(
+            by="study-id", domain="observations", query=study_id
+        )
+        mocker.assert_called_once_with(
+            endpoint=endpoint, query=study_id, batch_size=200
+        )
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-
-    @patch('ctxpy.base.CTXConnection.ctx_call')
-    def test_search_toxrefdb_observations_by_dtxsid(self,mocker):
-        hit = [{"id": 0,
+    @patch("ctxpy.base.CTXConnection.ctx_call")
+    def test_search_toxrefdb_observations_by_dtxsid(self, mocker):
+        hit = [
+            {
+                "id": 0,
                 "studyId": 0,
                 "dtxsid": "AAAAAA",
                 "casrn": "AAAAAA",
@@ -1078,23 +1111,22 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "testedStatus": False,
                 "reportedStatus": False,
                 "exportDate": "1970-01-01",
-                "version": "string"}]
+                "version": "string",
+            }
+        ]
         mocker.return_value = hit
-        dtxsid = 'DTXSID7020182'
-        endpoint = 'hazard/toxref/observations/search/by-dtxsid/'
+        dtxsid = "DTXSID7020182"
+        endpoint = "hazard/toxref/observations/search/by-dtxsid/"
         haz = ctxpy.Hazard()
-        result = haz.search_toxrefdb(by='dtxsid',
-                                     domain='observations',
-                                     query=dtxsid)
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=dtxsid,
-                                       batch_size=200)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        result = haz.search_toxrefdb(by="dtxsid", domain="observations", query=dtxsid)
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid, batch_size=200)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-
-    @patch('ctxpy.base.CTXConnection.ctx_call')
-    def test_search_toxrefdb_dtxsid_batch(self,mocker):
-        hit = [{"studyId": 0,
+    @patch("ctxpy.base.CTXConnection.ctx_call")
+    def test_search_toxrefdb_dtxsid_batch(self, mocker):
+        hit = [
+            {
+                "studyId": 0,
                 "dtxsid": "AAAAAA",
                 "casrn": "AAAAAA",
                 "name": "AAAAAA",
@@ -1147,20 +1179,22 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "time": "string",
                 "timeUnit": "AAAAAA",
                 "noQuantDataReported": False,
-                "tbsKey": 0}]
+                "tbsKey": 0,
+            }
+        ]
         mocker.return_value = hit
-        dtxsid = ['DTXSID7020182','DTXSID2021868']
-        endpoint = 'hazard/toxref/search/by-dtxsid/'
+        dtxsid = ["DTXSID7020182", "DTXSID2021868"]
+        endpoint = "hazard/toxref/search/by-dtxsid/"
         haz = ctxpy.Hazard()
-        result = haz.search_toxrefdb(by='dtxsid',domain='all',query=dtxsid)
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=dtxsid,
-                                       batch_size=200)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        result = haz.search_toxrefdb(by="dtxsid", domain="all", query=dtxsid)
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid, batch_size=200)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.ctx_call')
-    def test_search_pprtv(self,mocker):
-        hit = [{"id": 0,
+    @patch("ctxpy.base.CTXConnection.ctx_call")
+    def test_search_pprtv(self, mocker):
+        hit = [
+            {
+                "id": 0,
                 "dtxsid": "AAAAAA",
                 "pprtvSubstanceId": 0,
                 "name": "string",
@@ -1170,36 +1204,42 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "irisLink": "string",
                 "rfcValue": "string",
                 "rfdValue": "string",
-                "woe": "string"}]
+                "woe": "string",
+            }
+        ]
         mocker.return_value = hit
-        dtxsid = 'DTXSID7020182'
-        endpoint = '/hazard/pprtv/search/by-dtxsid/'
+        dtxsid = "DTXSID7020182"
+        endpoint = "/hazard/pprtv/search/by-dtxsid/"
         haz = ctxpy.Hazard()
         result = haz.search_pprtv(dtxsid=dtxsid)
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=dtxsid)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.ctx_call')
-    def test_search_hawc(self,mocker):
-        hit = [{"id": 0,
+    @patch("ctxpy.base.CTXConnection.ctx_call")
+    def test_search_hawc(self, mocker):
+        hit = [
+            {
+                "id": 0,
                 "name": "string",
                 "year": 0,
                 "dtxsid": "string",
                 "ccdUrl": "string",
-                "hawcUrl": "string"}]
+                "hawcUrl": "string",
+            }
+        ]
         mocker.return_value = hit
-        dtxsid = 'DTXSID7020182'
-        endpoint = '/hazard/hawc/search/by-dtxsid/'
+        dtxsid = "DTXSID7020182"
+        endpoint = "/hazard/hawc/search/by-dtxsid/"
         haz = ctxpy.Hazard()
         result = haz.search_hawc(dtxsid=dtxsid)
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=dtxsid)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.ctx_call')
-    def test_search_iris(self,mocker):
-        hit = [{"dtxsid": "string",
+    @patch("ctxpy.base.CTXConnection.ctx_call")
+    def test_search_iris(self, mocker):
+        hit = [
+            {
+                "dtxsid": "string",
                 "chemicalName": "string",
                 "casrn": "string",
                 "lastSignificantRevision": "1970-01-01T00:00:00.000Z",
@@ -1210,19 +1250,22 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "rfcChronic": "string",
                 "rfcSubchronic": "string",
                 "tumorSite": "string",
-                "irisUrl": "string"}]
+                "irisUrl": "string",
+            }
+        ]
         mocker.return_value = hit
-        dtxsid = 'DTXSID7020182'
-        endpoint = '/hazard/iris/search/by-dtxsid/'
+        dtxsid = "DTXSID7020182"
+        endpoint = "/hazard/iris/search/by-dtxsid/"
         haz = ctxpy.Hazard()
         result = haz.search_iris(dtxsid=dtxsid)
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=dtxsid)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
 
-    @patch('ctxpy.base.CTXConnection.ctx_call')
-    def test_search_adme_ivive(self,mocker):
-        hit = [{"id": 0,
+    @patch("ctxpy.base.CTXConnection.ctx_call")
+    def test_search_adme_ivive(self, mocker):
+        hit = [
+            {
+                "id": 0,
                 "dtxsid": "string",
                 "description": "string",
                 "measured": "string",
@@ -1232,15 +1275,17 @@ class TestHazard(unittest.TestCase, CustomAssertions):
                 "reference": "string",
                 "percentile": "string",
                 "species": "string",
-                "dataSourceSpecies": "string"}]
+                "dataSourceSpecies": "string",
+            }
+        ]
         mocker.return_value = hit
-        dtxsid = 'DTXSID7020182'
-        endpoint = '/hazard/adme-ivive/search/by-dtxsid/'
+        dtxsid = "DTXSID7020182"
+        endpoint = "/hazard/adme-ivive/search/by-dtxsid/"
         haz = ctxpy.Hazard()
         result = haz.search_adme_ivive(dtxsid=dtxsid)
-        mocker.assert_called_once_with(endpoint=endpoint,
-                                       query=dtxsid)
-        self.assertFramesEqual(left=result,right=pd.DataFrame(hit))
+        mocker.assert_called_once_with(endpoint=endpoint, query=dtxsid)
+        self.assertFramesEqual(left=result, right=pd.DataFrame(hit))
+
 
 if __name__ == "__main__":
     unittest.main()

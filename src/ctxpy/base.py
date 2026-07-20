@@ -10,14 +10,14 @@ ResponseTransformer: covert API returns to pandas DataFrame
 import json
 import warnings
 from pathlib import Path
-from typing import Optional, Union, Iterable, Callable
+from typing import Callable, Iterable, Optional, Union
+from urllib.parse import quote
 
 import pandas as pd
 import requests
-from urllib.parse import quote
 from pandas.api.types import is_list_like
 
-from .utils import read_env, chunker
+from .utils import chunker, read_env
 
 
 class CTXConnection:
@@ -47,6 +47,7 @@ class CTXConnection:
         send data to resource and then retrieve information based on that data
 
     """
+
     def __init__(
         self,
         x_api_key: Optional[str] = None,
@@ -60,10 +61,12 @@ class CTXConnection:
         else:
             config = read_env()
             self.host = config["ctx_api_host"]
-            self.headers = {"accept":config['ctx_api_accept'],
-                            "x-api-key":config['ctx_api_x_api_key']}
+            self.headers = {
+                "accept": config["ctx_api_accept"],
+                "x-api-key": config["ctx_api_x_api_key"],
+            }
 
-    def _format_post_query(self,query:str, bracketed:bool=True):
+    def _format_post_query(self, query: str, bracketed: bool = True):
 
         query = [quote(q, safe="") for q in query]
         if bracketed:
@@ -73,72 +76,77 @@ class CTXConnection:
             query = "\n".join(query)
         return query
 
-
-    def _get_request_method(self,query):
+    def _get_request_method(self, query):
         ## Get request type and format query
-        if (is_list_like(query)) and (not isinstance(query,dict)):
-            method = 'POST'
-        elif isinstance(query,str):
+        if (is_list_like(query)) and (not isinstance(query, dict)):
+            method = "POST"
+        elif isinstance(query, str):
             method = "GET"
-        elif isinstance(query,dict):
-            method = 'GET'
+        elif isinstance(query, dict):
+            method = "GET"
         elif query is None:
             method = "GET"
         else:
-            raise TypeError("Expected 'query' to be type `str`, `list`, or `None`"
-                            f"but is {type(query).__name__} instead.")
+            raise TypeError(
+                "Expected 'query' to be type `str`, `list`, or `None`"
+                f"but is {type(query).__name__} instead."
+            )
         return method
 
-    def _get_quoted_query(self,query,quote_method='default', bracketed=True):
+    def _get_quoted_query(self, query, quote_method="default", bracketed=True):
         if quote_method == "default":
             if is_list_like(query):
                 query = self._format_post_query(query=query, bracketed=bracketed)
-            elif isinstance(query,str):
-                query = quote(query,safe="")
+            elif isinstance(query, str):
+                query = quote(query, safe="")
         elif callable(quote_method):
             query = quote_method(query)
         return query
 
-    def _get_url_and_data(self,method:str, endpoint:str, query:Optional[str]=None):
+    def _get_url_and_data(
+        self, method: str, endpoint: str, query: Optional[str] = None
+    ):
 
         ## Construct URL
         if query is not None:
             if method == "POST":
-                url = f'{self.host}{endpoint}'
+                url = f"{self.host}{endpoint}"
                 data = query
             elif method == "GET":
-                url = f'{self.host}{endpoint}{query}'
+                url = f"{self.host}{endpoint}{query}"
                 data = None
         else:
-            url = f'{self.host}{endpoint}'
+            url = f"{self.host}{endpoint}"
             data = None
         return url, data
 
-
-    def _request(self, endpoint: str, query: Optional[str]=None,
-                 params: Optional[dict]=None, bracketed:bool=True,
-                 quote_method: Union[str, Callable]='default'):
+    def _request(
+        self,
+        endpoint: str,
+        query: Optional[str] = None,
+        params: Optional[dict] = None,
+        bracketed: bool = True,
+        quote_method: Union[str, Callable] = "default",
+    ):
 
         method = self._get_request_method(query=query)
 
-        if (method == "POST") or (method == "PUT"):
-            self.headers['content-type'] = 'application/json'
+        if (method in {"POST", "PUT"}):
+            self.headers["content-type"] = "application/json"
 
-        query = self._get_quoted_query(query=query,
-                                       quote_method=quote_method,
-                                       bracketed=bracketed)
+        query = self._get_quoted_query(
+            query=query, quote_method=quote_method, bracketed=bracketed
+        )
 
-        url, data = self._get_url_and_data(method=method,
-                                           endpoint=endpoint,
-                                           query=query)
+        url, data = self._get_url_and_data(
+            method=method, endpoint=endpoint, query=query
+        )
 
         ## Try the request, raise errors if there are any
         try:
-            self.response = requests.request(method=method,
-                                             url=url,
-                                             data=data,
-                                             headers=self.headers,
-                                             params=params)
+            self.response = requests.request(
+                method=method, url=url, data=data, headers=self.headers, params=params
+            )
             self.response.raise_for_status()
         except requests.exceptions.RequestException as err:
             raise err
@@ -151,9 +159,13 @@ class CTXConnection:
         return info
 
     def _batch(
-        self, endpoint: str, query: Iterable[str], batch_size: int,
-        params: Optional[dict]=None, bracketed:bool=True,
-        quote_method: Union[str, Callable]='default'
+        self,
+        endpoint: str,
+        query: Iterable[str],
+        batch_size: int,
+        params: Optional[dict] = None,
+        bracketed: bool = True,
+        quote_method: Union[str, Callable] = "default",
     ):
         """
         There are some inconsistencies in how to provide 'batch' data to the API.
@@ -167,38 +179,61 @@ class CTXConnection:
 
         chunks = []
         for chunk in chunker(query, batch_size):
-
             ## TODO: Check that suffix is re-written on each loop,
             ## not appended to
             chunks.extend(
-                self._request(endpoint=endpoint, query=query, bracketed=bracketed))
+                self._request(endpoint=endpoint, query=query, bracketed=bracketed)
+            )
 
         return chunks
 
-    def ctx_call(self, endpoint:str, query:Optional[str]=None,
-                 params:Optional[dict]=None, bracketed:bool=True,
-                 batched:bool=False, batch_size:int=200,
-                 quote_method='default'):
+    def ctx_call(
+        self,
+        endpoint: str,
+        query: Optional[str] = None,
+        params: Optional[dict] = None,
+        bracketed: bool = True,
+        batched: bool = False,
+        batch_size: int = 200,
+        quote_method="default",
+    ):
 
         if batched:
-            info = self._batch(endpoint=endpoint, query=query, params=params,
-                               bracketed=bracketed, batch_size=batch_size,
-                               quote_method=quote_method)
+            info = self._batch(
+                endpoint=endpoint,
+                query=query,
+                params=params,
+                bracketed=bracketed,
+                batch_size=batch_size,
+                quote_method=quote_method,
+            )
         else:
             if (pd.api.types.is_list_like(query)) and (len(query) > batch_size):
-                warnings.warn("Length of query's iterable is larger than `batch_size`, "
-                              "performing batched search.")
-                info = self._batch(endpoint=endpoint, query=query, params=params,
-                                   bracketed=bracketed, batch_size=batch_size,
-                                   quote_method=quote_method)
+                warnings.warn(
+                    "Length of query's iterable is larger than `batch_size`, "
+                    "performing batched search."
+                )
+                info = self._batch(
+                    endpoint=endpoint,
+                    query=query,
+                    params=params,
+                    bracketed=bracketed,
+                    batch_size=batch_size,
+                    quote_method=quote_method,
+                )
 
-            info = self._request(endpoint=endpoint, query=query, params=params,
-                                 bracketed=bracketed, quote_method=quote_method)
+            info = self._request(
+                endpoint=endpoint,
+                query=query,
+                params=params,
+                bracketed=bracketed,
+                quote_method=quote_method,
+            )
         return info
 
 
 class ResponseTransformer:
-    def __init__(self,data):
+    def __init__(self, data):
         self._data = data
 
     def __iter__(self):
@@ -209,7 +244,7 @@ class ResponseTransformer:
         """
         return iter(self._data)
 
-    def __getitem__(self,index):
+    def __getitem__(self, index):
         """
         Supports indexing, enabling access to individual elements of
         the raw data.
@@ -224,6 +259,11 @@ class ResponseTransformer:
         return repr(self._data)
 
     def to_df(self):
-        df = pd.DataFrame(self._data).fillna(pd.NA).replace("-",pd.NA).replace("",pd.NA)
-        df.attrs = {"response":self._data}
+        df = (
+            pd.DataFrame(self._data)
+            .fillna(pd.NA)
+            .replace("-", pd.NA)
+            .replace("", pd.NA)
+        )
+        df.attrs = {"response": self._data}
         return df

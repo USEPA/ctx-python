@@ -7,8 +7,13 @@ from typing import Optional, Union
 
 from .utils import read_env, write_env
 
+
 ## TODO: CLI tests
-def init(ctx_api_x_api_key: str, override: bool=False, env_file: Optional[Union[str,Path]]=None):
+def init(
+    ctx_api_x_api_key: str,
+    override: bool = False,
+    env_file: Optional[Union[str, Path]] = None,
+):
     """
     Initialize the .env file for this package, so that a user's API is
     stored and accessed from a centralized location.
@@ -45,18 +50,18 @@ def init(ctx_api_x_api_key: str, override: bool=False, env_file: Optional[Union[
         if override:
             # unset_key(dotenv_path=env_file,key_to_unset='ctx_api_x_api_key')
             data["ctx_api_x_api_key"] = ctx_api_x_api_key
-            write_env(data,env_file=env_file)
+            write_env(data, env_file=env_file)
+
+        # If not add providied key only if key is not in file already
+        elif "ctx_api_x_api_key" not in data.keys():
+            data["ctx_api_x_api_key"] = ctx_api_x_api_key
+            write_env(data, env_file=env_file)
 
         else:
-            # If not add providied key only if key is not in file already
-            if 'ctx_api_x_api_key' not in data.keys():
-                data["ctx_api_x_api_key"] = ctx_api_x_api_key
-                write_env(data,env_file=env_file)
-
-            else:
-                raise SystemExit(f"Error: ctx_x_api_key variable exists in {env_file}. "
-                   "Use `--override` to override existing key with passed key.")
-
+            raise SystemExit(
+                f"Error: ctx_x_api_key variable exists in {env_file}. "
+                "Use `--override` to override existing key with passed key."
+            )
 
 
 def main():
