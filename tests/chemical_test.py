@@ -19,6 +19,7 @@ class TestChemical(unittest.TestCase):
         mocker.assert_called_once_with(endpoint='chemical/search/equal/',
                                        query=chemical,
                                        batch_size=200,
+                                       params=None,
                                        bracketed=False)
         self.assertEqual(result, [{'dtxsid': 'DTXSID7021360',
                                    'preferredName': 'Toluene'}])
@@ -38,6 +39,7 @@ class TestChemical(unittest.TestCase):
         mocker.assert_called_once_with(endpoint='chemical/search/start-with/',
                                        query=chemical,
                                        batch_size=200,
+                                       params=None,
                                        bracketed=False)
         self.assertEqual(result, [{'dtxsid': 'DTXSID7021360',
                                    'preferredName': 'Toluene'}])
@@ -68,6 +70,7 @@ class TestChemical(unittest.TestCase):
         mocker.assert_called_once_with(endpoint='chemical/search/contain/',
                                        query=chemical,
                                        batch_size=200,
+                                       params=None,
                                        bracketed=False)
         self.assertEqual(result, hit)
 
@@ -90,6 +93,7 @@ class TestChemical(unittest.TestCase):
         mocker.assert_called_once_with(endpoint='chemical/search/equal/',
                                        query=dtxsid,
                                        batch_size=1,
+                                       params=None,
                                        bracketed=False)
         self.assertEqual(result, hit)
 
@@ -112,6 +116,7 @@ class TestChemical(unittest.TestCase):
         mocker.assert_called_once_with(endpoint='chemical/search/equal/',
                                        query=dtxsid,
                                        batch_size=200,
+                                       params=None,
                                        bracketed=False)
         self.assertEqual(result, hit)
 
@@ -361,7 +366,7 @@ class TestChemical(unittest.TestCase):
                               batch_size=1,
                               subset='nta')
 
-        
+
         mocker.assert_called_once_with(endpoint='chemical/detail/search/by-dtxcid/',
                                        query=dtxcid,
                                        params=params,
