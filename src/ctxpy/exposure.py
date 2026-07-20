@@ -65,7 +65,7 @@ class Exposure(CTXConnection):
 
         df = []
         for q in query:
-            df.extend(self.request(endpoint=endpoint, query=q))
+            df.extend(self._request(endpoint=endpoint, query=q))
             sleep(0.1)
         return df
 
