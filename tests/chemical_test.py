@@ -19,6 +19,7 @@ class TestChemical(unittest.TestCase):
             endpoint="chemical/search/equal/",
             query=chemical,
             batch_size=200,
+            params=None,
             bracketed=False,
         )
         self.assertEqual(
@@ -39,6 +40,7 @@ class TestChemical(unittest.TestCase):
             endpoint="chemical/search/start-with/",
             query=chemical,
             batch_size=200,
+            params=None,
             bracketed=False,
         )
         self.assertEqual(
@@ -79,6 +81,7 @@ class TestChemical(unittest.TestCase):
             endpoint="chemical/search/contain/",
             query=chemical,
             batch_size=200,
+            params=None,
             bracketed=False,
         )
         self.assertEqual(result, hit)
@@ -101,6 +104,7 @@ class TestChemical(unittest.TestCase):
             endpoint="chemical/search/equal/",
             query=dtxsid,
             batch_size=1,
+            params=None,
             bracketed=False,
         )
         self.assertEqual(result, hit)
@@ -123,6 +127,7 @@ class TestChemical(unittest.TestCase):
             endpoint="chemical/search/equal/",
             query=dtxsid,
             batch_size=200,
+            params=None,
             bracketed=False,
         )
         self.assertEqual(result, hit)
@@ -408,6 +413,16 @@ class TestChemical(unittest.TestCase):
         dtxcid = ["DTXCID501360", "DTXCID701868"]
         params = {"projection": "ntatoolkit"}
         chem = ctxpy.Chemical()
+        result = chem.details(by='batch-dtxcid',
+                              query=dtxcid,
+                              batch_size=1,
+                              subset='nta')
+
+
+        mocker.assert_called_once_with(endpoint='chemical/detail/search/by-dtxcid/',
+                                       query=dtxcid,
+                                       params=params,
+                                       batch_size=1)
         result = chem.details(
             by="batch-dtxcid", query=dtxcid, batch_size=1, subset="nta"
         )

@@ -79,7 +79,11 @@ class Chemical(CTXConnection):
         return toxps
 
     def search(
-        self, by: str, query: Union[str, Iterable[str]], batch_size: Optional[int] = 200
+        self,
+        by: str,
+        query: Union[str, Iterable[str]],
+        batch_size: Optional[int] = 200,
+        top_n_hits: Optional[int]=None
     ):
         """
         Search for chemical(s) using chemical identifiers via CCTE's APIs.
@@ -107,6 +111,12 @@ class Chemical(CTXConnection):
             `query` argument. If more than 200 are submitted, then the request is
             chunked into batches of `batch_size`. If `by` argument is any other option
             than `batch` this argument is ignored.
+        top_n_hits: int (default=None)
+            For 'contains' and 'starts-with' options for 'by' parameter, this parameter
+            limits the number of matches returned by the request. Setting the value to
+            0 returns all matches, if the value is left as None (default), then the
+            default value is that specified by the API. "starts-with" speficies a value
+            of 500, by default, and "contains" 0 (i.e., all matches).
 
         Return
         ------
@@ -236,9 +246,16 @@ class Chemical(CTXConnection):
             )
 
         endpoint = f"{self.KIND}/search/{options[by]}/"
-        info = super(Chemical, self).ctx_call(
-            endpoint=endpoint, query=query, batch_size=batch_size, bracketed=False
-        )
+        if top_n_hits is None:
+            params = None
+        else:
+            params = {"top": top_n_hits}
+
+        info = super(Chemical, self).ctx_call(endpoint=endpoint,
+                                              query=query,
+                                              batch_size=batch_size,
+                                              params=params,
+                                              bracketed=False)
 
         return info
 
