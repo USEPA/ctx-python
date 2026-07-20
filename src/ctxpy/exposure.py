@@ -1,3 +1,5 @@
+"""Access the Exposure endpoints of the CTX API."""
+
 from typing import Optional
 from time import sleep
 
@@ -51,18 +53,18 @@ class Exposure(CTXConnection):
 
     def _batch(self, endpoint:str, query:str):
         """
-        There are currently no batch searches for the `search_qsurs` and `search_mmdb` 
-        methods. This function allows a list of dtxsids to be sumitted to the 
-        `search_qsurs` method and run each dtxsid as its own get call to the 
+        There are currently no batch searches for the `search_qsurs` and `search_mmdb`
+        methods. This function allows a list of dtxsids to be sumitted to the
+        `search_qsurs` method and run each dtxsid as its own get call to the
         CTXConnection. While the same could be done for the `search_mmdb` method, it is
         not yet implemented because of the bandwidth/memory that is required for a call
         of a single medium or chemical to that endpoint.
         """
-        
-        
+
+
         ## Remove duplicated DTXSIDs
         query = list(set(query))
-        
+
         df = []
         for q in query:
             df.extend(self.request(endpoint=endpoint,query=q))
@@ -74,8 +76,8 @@ class Exposure(CTXConnection):
         """
         Search for CPDat information by CPDat vocabulary and DTXSID(s).
 
-        CPDat vocabularies are defined in Handa et al. 2025. For a single chemical or 
-        list of chemicals search for 1) reported functional uses, 2) products that 
+        CPDat vocabularies are defined in Handa et al. 2025. For a single chemical or
+        list of chemicals search for 1) reported functional uses, 2) products that
         report this chemical as an ingredient, or 3) annotated lists of chemicals that
         contain the searched chemical(s).
 
@@ -88,7 +90,7 @@ class Exposure(CTXConnection):
             chemical list presence information.
 
         dtxsid : string or list-like
-            If string, then a single DTXSID is expected. If list like, then a list of 
+            If string, then a single DTXSID is expected. If list like, then a list of
             DTXSIDs is expected.
 
         Return
@@ -137,7 +139,7 @@ class Exposure(CTXConnection):
             "puc":  "product-data/search/by-dtxsid",
             "lpk":  "list-presence/search/by-dtxsid",
         }
-        
+
         if vocab_name not in options.keys():
             raise KeyError(f"Value {vocab_name} is invalid option for argument `by`.")
 
@@ -157,13 +159,13 @@ class Exposure(CTXConnection):
         DTXSID(s).
 
         QSURs are defined in Phillips et al. 2017 (DOI: 10.1039/C6GC02744J). Predicted
-        functional uses are returned for the provided DTXSID(s). Only predictions that 
+        functional uses are returned for the provided DTXSID(s). Only predictions that
         are within the domain of applicability for a model are returned.
 
         Parameters
         ----------
         dtxsid : string or list-like
-            If string, then a single DTXSID is expected. If list like, then a list of 
+            If string, then a single DTXSID is expected. If list like, then a list of
             DTXSIDs is expected.
 
         Return
@@ -176,7 +178,7 @@ class Exposure(CTXConnection):
         Examples
         --------
         Search for predicted functional uses of a single chemical:
-        
+
         >>> expo.search_qsurs(dtxsid='DTXSID7020182')
 
            harmonizedFunctionalUse  probability
@@ -213,7 +215,7 @@ class Exposure(CTXConnection):
         19  DTXSID2021868         skin_protectant       0.1560
         """
         endpoint = f"{self.KIND}/functional-use/probability/search/by-dtxsid/"
-        
+
         ## Make sure its a list-like objects of strings
         if is_list_like(dtxsid):
             info = self._batch(endpoint=endpoint,query=dtxsid)
@@ -235,14 +237,14 @@ class Exposure(CTXConnection):
         Parameters
         ----------
         by : string
-            Method for searching MMDB. Options `medium`, 'aggregate`, or `dtxsid`. 
-            `medium` returns all single-source type chemical records for a single  
-            medium category, `aggregate` returns all aggregate type chemical records 
+            Method for searching MMDB. Options `medium`, 'aggregate`, or `dtxsid`.
+            `medium` returns all single-source type chemical records for a single
+            medium category, `aggregate` returns all aggregate type chemical records
             for a single medium category, and `dtxsid` returns all single source type
             records for a single chemical substance across all media categories.
 
         query: string
-            When searching MMDB only a single medium or chemical is searchable due to 
+            When searching MMDB only a single medium or chemical is searchable due to
             call time contraints.
 
         Return
@@ -255,7 +257,7 @@ class Exposure(CTXConnection):
         Examples
         --------
         Search for predicted functional uses of a single chemical:
-        
+
         >>> expo.search_mmdb(by='medium',query='livestock/meat')
 
 
@@ -299,8 +301,8 @@ class Exposure(CTXConnection):
         Search for exposure estimates by DTXSID.
 
         Search for 1) exposure estimates for a chemical or chemicals based on
-        the SEEM 3 framework published in Ring 2018 or 2) exposure pathway predictions 
-        that are sourced from pathway prediction models (also published in Ring 2018; 
+        the SEEM 3 framework published in Ring 2018 or 2) exposure pathway predictions
+        that are sourced from pathway prediction models (also published in Ring 2018;
         DOI: 10.1021/acs.est.8b04056).
 
         Parameters
@@ -308,18 +310,18 @@ class Exposure(CTXConnection):
         by : string
             The type of search method to use. Options are "pathways" or "seem".
             The "pathways" argument option returns the probability of exposure occuring
-            along four exposure pathways defined in Ring 2018 (dietary, residential, 
+            along four exposure pathways defined in Ring 2018 (dietary, residential,
             far-field pesticide, and far-field industrial); information is
             also provided on the reported production volume from the 2015 Chemical Data
             Reporting cycle in the U.S. as well as the Stockholm Convention for
             Persistent Organic Pollutants list. These two sources were crucial inputs
             for predicting exposure pathways.
-            "seem" returns the consensus exposure estimate as well as the individual 
+            "seem" returns the consensus exposure estimate as well as the individual
             exposure model predictions that lead to the consensus value. These estimates
             are also broken out by demographic information.
 
         dtxsid : string or list-like
-            If string, then a single DTXSID is expected. If list like, then a list of 
+            If string, then a single DTXSID is expected. If list like, then a list of
             DTXSIDs is expected.
 
         Return
@@ -376,17 +378,17 @@ class Exposure(CTXConnection):
         """
         Search for High-Throughput Toxicokinetics data by DTXSID.
 
-        
+
         Parameters
         ----------
         dtxsid : string or list-like
-            If string, then a single DTXSID is expected. If list like, then a list of 
+            If string, then a single DTXSID is expected. If list like, then a list of
             DTXSIDs is expected.
 
         Return
         ------
         pandas DataFrame
-            a data frame containing high-througput toxicokinetic data for the submitted 
+            a data frame containing high-througput toxicokinetic data for the submitted
             chemical or chemicals.
 
 
@@ -444,7 +446,7 @@ class Exposure(CTXConnection):
         """
         Retrieve a contolled vocabulary from CPDat.
 
-        Retrieve one of three controlled vocabularies (with definintions) in CPDat. 
+        Retrieve one of three controlled vocabularies (with definintions) in CPDat.
         CPDat vocabularies are defined in Handa et al. 2025. Options are function
         categories (FCs), product use categories (puc) and list presence keywords
         (lpk).
@@ -509,4 +511,3 @@ class Exposure(CTXConnection):
         endpoint = f"{self.KIND}/{options[vocab_name]}"
         info = super(Exposure,self).ctx_call(endpoint=endpoint)
         return ResponseTransformer(info).to_df()
-

@@ -1,3 +1,12 @@
+"""Main connection class to the CTX APIs.
+
+Classes
+-------
+CTXConnection: connect and interact with CTX APIs
+ResponseTransformer: covert API returns to pandas DataFrame
+
+"""
+
 import json
 import warnings
 from pathlib import Path
@@ -15,21 +24,21 @@ class CTXConnection:
     """
     Connection that passes API key and other variables needed for GET and POST calls to
     API server.
-    
+
     Parameters
     ----------
     x_api_key : str or None, default None
         A user's API key provided to them for accessing CCTE's APIs. Will use value
         provided in .env file if no key is provided.
     env_path : str or None, default None
-        The .env file location. Will default to a user's home directory if no value is 
+        The .env file location. Will default to a user's home directory if no value is
         provided.
-        
+
     Attributes
     ----------
     headers : dict
         A dictionary of information used to make an API call
-        
+
     Methods
     -------
     get
@@ -53,9 +62,9 @@ class CTXConnection:
             self.host = config["ctx_api_host"]
             self.headers = {"accept":config['ctx_api_accept'],
                             "x-api-key":config['ctx_api_x_api_key']}
-    
+
     def _format_post_query(self,query:str, bracketed:bool=True):
-        
+
         query = [quote(q, safe="") for q in query]
         if bracketed:
             query = '["' + '","'.join(query) + '"]'
@@ -104,7 +113,7 @@ class CTXConnection:
             url = f'{self.host}{endpoint}'
             data = None
         return url, data
-        
+
 
     def _request(self, endpoint: str, query: Optional[str]=None,
                  params: Optional[dict]=None, bracketed:bool=True,
@@ -118,11 +127,11 @@ class CTXConnection:
         query = self._get_quoted_query(query=query,
                                        quote_method=quote_method,
                                        bracketed=bracketed)
-        
+
         url, data = self._get_url_and_data(method=method,
                                            endpoint=endpoint,
                                            query=query)
-        
+
         ## Try the request, raise errors if there are any
         try:
             self.response = requests.request(method=method,
@@ -140,8 +149,12 @@ class CTXConnection:
             raise err
 
         return info
-    
-    def _batch(self, endpoint: str, query: Iterable[str], batch_size: int, bracketed:bool=True):
+
+    def _batch(
+        self, endpoint: str, query: Iterable[str], batch_size: int,
+        params: Optional[dict]=None, bracketed:bool=True,
+        quote_method: Union[str, Callable]='default'
+    ):
         """
         There are some inconsistencies in how to provide 'batch' data to the API.
         Sometimes the list of identifiers needs to be a bracketed list, other times it
@@ -157,8 +170,9 @@ class CTXConnection:
 
             ## TODO: Check that suffix is re-written on each loop,
             ## not appended to
-            chunks.extend(self.request(endpoint=endpoint, query=query, bracketed=bracketed))
-            
+            chunks.extend(
+                self._request(endpoint=endpoint, query=query, bracketed=bracketed))
+
         return chunks
 
     def ctx_call(self, endpoint:str, query:Optional[str]=None,
@@ -177,7 +191,7 @@ class CTXConnection:
                 info = self._batch(endpoint=endpoint, query=query, params=params,
                                    bracketed=bracketed, batch_size=batch_size,
                                    quote_method=quote_method)
-                
+
             info = self._request(endpoint=endpoint, query=query, params=params,
                                  bracketed=bracketed, quote_method=quote_method)
         return info
@@ -189,26 +203,26 @@ class ResponseTransformer:
 
     def __iter__(self):
         """
-        Implements iteration over the PostResponse object, 
-        allowing it to be used in loops and other iterable contexts, 
+        Implements iteration over the PostResponse object,
+        allowing it to be used in loops and other iterable contexts,
         returning the raw list of dictionaries.
         """
         return iter(self._data)
 
     def __getitem__(self,index):
         """
-        Supports indexing, enabling access to individual elements of 
+        Supports indexing, enabling access to individual elements of
         the raw data.
         """
         return self._data[index]
 
     def __repr__(self):
         """
-        Provides a string representation of the raw data, which is 
+        Provides a string representation of the raw data, which is
         useful for debugging and when printing the object.
         """
         return repr(self._data)
-    
+
     def to_df(self):
         df = pd.DataFrame(self._data).fillna(pd.NA).replace("-",pd.NA).replace("",pd.NA)
         df.attrs = {"response":self._data}

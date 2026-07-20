@@ -1,3 +1,5 @@
+"""Access the ChemicalList endpoints of the CTX API."""
+
 from typing import Optional
 from urllib.parse import quote
 
@@ -72,7 +74,7 @@ class ChemicalList(CTXConnection):
         ## as of 10/15/2025 'details' option does not elict repsonse. Pop it now,
         ## and test it next time to see if it works
         output_options.pop('details')
-        
+
         if output is None:
             output = "all"
         if output not in output_options.keys():
@@ -122,7 +124,7 @@ class ChemicalList(CTXConnection):
                                                  params=params)
         return info
 
-    
+
     def _join_query(query: dict):
         query = {k:quote(v, safe="") for k,v in query.items()}
         return f"{query['list']}/{query['word']}"
@@ -143,7 +145,7 @@ class ChemicalList(CTXConnection):
 
 
     def get_list(self, list_name: str,):
-        
+
         """
         Returns list of DTXSIDs for chemicals on the provided list.
 
@@ -154,7 +156,7 @@ class ChemicalList(CTXConnection):
         Parameters
         ----------
         list_name : string
-            The name of the chemical list for which to retrieve DTXSIDs. 
+            The name of the chemical list for which to retrieve DTXSIDs.
 
         Return
         ------
@@ -172,5 +174,3 @@ class ChemicalList(CTXConnection):
         info = super(ChemicalList, self).ctx_call(endpoint=endpoint,query=list_name)
 
         return info
-
-    

@@ -1,3 +1,5 @@
+"""Command line tool to add CTX API key to .env file."""
+
 import argparse
 import sys
 from pathlib import Path
@@ -38,24 +40,23 @@ def init(ctx_api_x_api_key: str, override: bool=False, env_file: Optional[Union[
     else:
         # Yes, then read in the env vars in the file
         data = read_env(env_file=env_file)
-        
+
         # Should we override existing keys?
         if override:
             # unset_key(dotenv_path=env_file,key_to_unset='ctx_api_x_api_key')
             data["ctx_api_x_api_key"] = ctx_api_x_api_key
             write_env(data,env_file=env_file)
-            
+
         else:
             # If not add providied key only if key is not in file already
             if 'ctx_api_x_api_key' not in data.keys():
                 data["ctx_api_x_api_key"] = ctx_api_x_api_key
                 write_env(data,env_file=env_file)
-                
+
             else:
                 raise SystemExit(f"Error: ctx_x_api_key variable exists in {env_file}. "
                    "Use `--override` to override existing key with passed key.")
 
-    return
 
 
 def main():
@@ -72,4 +73,3 @@ def main():
     else:
         args = parser.parse_args()
         init(ctx_api_x_api_key=args.x_api_key, override=args.override)
-    return

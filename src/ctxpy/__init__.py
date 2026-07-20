@@ -64,7 +64,7 @@ from .chemical_list import ChemicalList
 __all__ = ["Chemical", "Exposure","Hazard","ChemicalList"]
 __version__ = metadata.version('ctx-python')
 
-_disclaimer = """
+_DISCLAIMER = """
 `ctx-python` was developed by the U.S. Environmental Protection Agency 
 (USEPA). No warranty expressed or implied is made regarding the accuracy or utility 
 of the system, nor shall the act of distribution constitute any such warranty. The 

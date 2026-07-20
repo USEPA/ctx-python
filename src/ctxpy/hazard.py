@@ -1,5 +1,8 @@
+"""Access the Hazard endpoints of the CTX API."""
+
+from typing import Iterable, Optional
+
 from pandas.api.types import is_list_like
-from typing import Optional, Iterable
 
 from .base import CTXConnection, ResponseTransformer
 
@@ -56,15 +59,15 @@ class Hazard(CTXConnection):
         """
         Search ToxValDb for hazard information for a single chemical.
 
-        Retrieve a specific sub-domain of hazard information (from EPA's ToxValDB and 
-        other hazard resources) for a DTXSID identifier. If only the chemical name or 
+        Retrieve a specific sub-domain of hazard information (from EPA's ToxValDB and
+        other hazard resources) for a DTXSID identifier. If only the chemical name or
         CASRN is known, then the ctxpy.Chemical class can be used to search for DTXSIDs.
 
 
         Parameters
         ----------
         by : string
-            The type of search method to use. Options are "all", "human", "eco", 
+            The type of search method to use. Options are "all", "human", "eco",
             "skin-eye", "cancer", or "genetox".
 
         dtxsid : string
@@ -100,7 +103,7 @@ class Hazard(CTXConnection):
             "genetox":"genetox/details",
             "genetox-summary":"genetox/summary"
         }
-        
+
         if by not in options.keys():
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
 
@@ -125,18 +128,18 @@ class Hazard(CTXConnection):
         Parameters
         ----------
         by : string
-            The type of search method to use. Options are "study-type", "study-id", 
+            The type of search method to use. Options are "study-type", "study-id",
             or "dtxsid".
-            
+
         domain: string
-            Type of information to search for. Options are "effects", "summary", 
+            Type of information to search for. Options are "effects", "summary",
             "data", "observation", or "all".
 
         query : string
-            If `by` is "study-type" then `query` can be "ACU" (acute) "CHR" (chronic), 
-            "DEV" (developmental), "DNT" (developmental neurotoxicity), 
-            "MGR" (multigenerational reproductive), "NEU" (neurotoxicity), 
-            "OTH" (other), "REP" (reproductive), "SAC" (sub-acute), 
+            If `by` is "study-type" then `query` can be "ACU" (acute) "CHR" (chronic),
+            "DEV" (developmental), "DNT" (developmental neurotoxicity),
+            "MGR" (multigenerational reproductive), "NEU" (neurotoxicity),
+            "OTH" (other), "REP" (reproductive), "SAC" (sub-acute),
             or "SUB" (sub-chronic)
 
         Return
@@ -174,7 +177,7 @@ class Hazard(CTXConnection):
             if by != "study-id":
                 raise TypeError("`query` is integer type, but domain is not 'study-id'")
             query = str(query)
-            
+
         if (is_list_like(query)) and (by != 'dtxsid'):
             raise NotImplementedError(f"Batch searching is not available for {by}")
 
@@ -196,7 +199,7 @@ class Hazard(CTXConnection):
         """
         get /hazard/pprtv/search/by-dtxsid/{dtxsid}
         """
-        
+
         return self._search_other(other='pprtv',dtxsid=dtxsid)
 
     def search_hawc(self,dtxsid:str):

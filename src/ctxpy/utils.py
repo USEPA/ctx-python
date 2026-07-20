@@ -1,3 +1,5 @@
+"""Utility functions used throughout the ctx-python package."""
+
 from pathlib import Path
 from typing import Optional, Union
 
@@ -8,14 +10,14 @@ def chunker(listlike, size):
     """
     Iterator that provides shorthand for iterating over a sequence on chunck (of length
     size) at a time.
-    
+
     Parameters
     ----------
     listlike: list-like
         a list-like object that needs to be divided into smaller chuncks
     size: integer
         the number of items that should be in each chunk
-    
+
     Returns
     -------
     generator
@@ -26,16 +28,16 @@ def chunker(listlike, size):
 def flatten(lofl:list):
     """
     Takes a list of lists into and flattens into a single list
-    
+
     Parameters
     ----------
     lofl : list
         list of lists that needs to be flatted
-        
+
     Returns
     -------
     list
-    
+
     Examples
     --------
     >>> l = [[1,2,3],[0,9,8]]
@@ -49,7 +51,7 @@ def write_env(data:dict, env_file: Optional[Union[str, Path]] = None):
     """
     Writes or appends environment variables to a .env file. If no file exists,
     one is created.
-    
+
     Parameters
     ----------
     data : dict
@@ -70,12 +72,12 @@ def write_env(data:dict, env_file: Optional[Union[str, Path]] = None):
 def read_env(env_file: Optional[Union[str, Path]] = None):
     """
     Read environment variable information from file
-    
+
     Parameters
     ----------
     env_file : str or pathlib.Path
         File that environment variable information should be read from.
-        
+
     Returns
     -------
     dict

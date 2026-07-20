@@ -1,3 +1,5 @@
+"""Access the Chemical endpoints of the CTX API."""
+
 from typing import Iterable, Optional, Union
 from importlib import resources
 
@@ -97,13 +99,13 @@ class Chemical(CTXConnection):
 
         query : string or list-like
             If string, the single chemical identifer (or part of the identifier)
-            to search for. If list-list, a list or other iterable of identifiers to 
+            to search for. If list-list, a list or other iterable of identifiers to
             search for.
 
         batch_size: 200
             If `by` argument is "batch", then only 200 DTXSIDs may be submitted as the
-            `query` argument. If more than 200 are submitted, then the request is 
-            chunked into batches of `batch_size`. If `by` argument is any other option 
+            `query` argument. If more than 200 are submitted, then the request is
+            chunked into batches of `batch_size`. If `by` argument is any other option
             than `batch` this argument is ignored.
 
         Return
@@ -256,19 +258,19 @@ class Chemical(CTXConnection):
 
         query : string or list-like
             If string, the single chemical identifer (or part of the identifier)
-            to search for. If list-like, a list or other iterable of identifiers to 
+            to search for. If list-like, a list or other iterable of identifiers to
             search for.
 
         subset: string (optional)
-            If None, then default values are returned from call; this is equivalent to 
-            specifying the 'all' subset. If string, then one of six valid subsets of 
-            data to call. Options are 'default', 'all','details','identifiers', 
+            If None, then default values are returned from call; this is equivalent to
+            specifying the 'all' subset. If string, then one of six valid subsets of
+            data to call. Options are 'default', 'all','details','identifiers',
             'structures', and 'nta'.
 
         batch_size: 1000
             If `by` argument is "batch", then only 1000 DTXSIDs may be submitted as the
-            `query` argument. If more than 1000 are submitted, then the request is 
-            chunked into batches of `batch_size`. If `by` argument is any other option 
+            `query` argument. If more than 1000 are submitted, then the request is
+            chunked into batches of `batch_size`. If `by` argument is any other option
             than `batch` this argument is ignored.
 
         Return
@@ -389,7 +391,7 @@ class Chemical(CTXConnection):
         ----------
         by : string
             The type of search method to use. Options are "dtxcid", "mass-range",
-            or "formula". "dtxcid" option returns all mixtures, compenents, and 
+            or "formula". "dtxcid" option returns all mixtures, compenents, and
             isotopes of the chemical structure. "mass-range" returns all chemicals that
             exist within the specific monoisotopic mass range. "formula" returns all
             chemicals having that molecular formula.
@@ -466,7 +468,7 @@ class Chemical(CTXConnection):
             raise KeyError(f"Value {by} is invalid option for argument `by`.")
 
         endpoint = f"{self.KIND}/msready/search/{options[by]}/"
-        
+
         if by == "mass":
             query = f"{start}/{end}"
 
